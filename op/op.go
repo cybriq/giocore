@@ -15,9 +15,9 @@ to a ui/app.Window's Update method.
 
 Drawing a colored square:
 
-	import "github.com/l0k18/gio/unit"
-	import "github.com/l0k18/gio/app"
-	import "github.com/l0k18/gio/op/paint"
+	import "github.com/l0k18/giocore/unit"
+	import "github.com/l0k18/giocore/app"
+	import "github.com/l0k18/giocore/op/paint"
 
 	var w app.Window
 	var e system.FrameEvent
@@ -70,8 +70,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/internal/opconst"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/internal/opconst"
 )
 
 // Ops holds a list of operations. Operations are stored in

@@ -17,11 +17,11 @@ import (
 
 	"golang.org/x/image/colornames"
 
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/gpu/headless"
-	"github.com/l0k18/gio/internal/f32color"
-	"github.com/l0k18/gio/op"
-	"github.com/l0k18/gio/op/paint"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/gpu/headless"
+	"github.com/l0k18/giocore/internal/f32color"
+	"github.com/l0k18/giocore/op"
+	"github.com/l0k18/giocore/op/paint"
 )
 
 var (

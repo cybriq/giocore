@@ -1,8 +1,8 @@
 package gpu
 
 import (
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/internal/stroke"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/internal/stroke"
 )
 
 type quadSplitter struct {

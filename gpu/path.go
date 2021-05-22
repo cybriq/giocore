@@ -11,10 +11,10 @@ import (
 	"math"
 	"unsafe"
 
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/gpu/internal/driver"
-	"github.com/l0k18/gio/internal/byteslice"
-	"github.com/l0k18/gio/internal/f32color"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/gpu/internal/driver"
+	"github.com/l0k18/giocore/internal/byteslice"
+	"github.com/l0k18/giocore/internal/f32color"
 )
 
 type pather struct {

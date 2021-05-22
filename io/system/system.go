@@ -8,9 +8,9 @@ import (
 	"image"
 	"time"
 
-	"github.com/l0k18/gio/io/event"
-	"github.com/l0k18/gio/op"
-	"github.com/l0k18/gio/unit"
+	"github.com/l0k18/giocore/io/event"
+	"github.com/l0k18/giocore/op"
+	"github.com/l0k18/giocore/unit"
 )
 
 // A FrameEvent requests a new frame in the form of a list of

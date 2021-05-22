@@ -4,7 +4,7 @@
 Package app provides a platform-independent interface to operating system
 functionality for running graphical user interfaces.
 
-See https://github.com/l0k18/gio for instructions to set up and run Gio programs.
+See https://github.com/l0k18/giocore for instructions to set up and run Gio programs.
 
 Windows
 
@@ -18,7 +18,7 @@ contents and state.
 
 For example:
 
-	import "github.com/l0k18/gio/unit"
+	import "github.com/l0k18/giocore/unit"
 
 	w := app.NewWindow()
 	for e := range w.Events() {
@@ -45,7 +45,7 @@ For example, to display a blank but otherwise functional window:
 
 	package main
 
-	import "github.com/l0k18/gio/app"
+	import "github.com/l0k18/giocore/app"
 
 	func main() {
 		go func() {
@@ -61,13 +61,13 @@ Event queue
 
 A FrameEvent's Queue method returns an event.Queue implementation that distributes
 incoming events to the event handlers declared in the last frame.
-See the github.com/l0k18/gio/io/event package for more information about event handlers.
+See the github.com/l0k18/giocore/io/event package for more information about event handlers.
 
 Permissions
 
-The packages under github.com/l0k18/gio/app/permission should be imported
+The packages under github.com/l0k18/giocore/app/permission should be imported
 by a Gio program or by one of its dependencies to indicate that specific
 operating-system permissions are required.  Please see documentation for
-package github.com/l0k18/gio/app/permission for more information.
+package github.com/l0k18/giocore/app/permission for more information.
 */
 package app

@@ -17,7 +17,7 @@ import (
 	"log"
 	"unsafe"
 
-	_ "github.com/l0k18/gio/internal/cocoainit"
+	_ "github.com/l0k18/giocore/internal/cocoainit"
 )
 
 func init() {

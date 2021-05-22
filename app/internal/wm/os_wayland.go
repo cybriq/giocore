@@ -21,14 +21,14 @@ import (
 
 	syscall "golang.org/x/sys/unix"
 
-	"github.com/l0k18/gio/app/internal/xkb"
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/internal/fling"
-	"github.com/l0k18/gio/io/clipboard"
-	"github.com/l0k18/gio/io/key"
-	"github.com/l0k18/gio/io/pointer"
-	"github.com/l0k18/gio/io/system"
-	"github.com/l0k18/gio/unit"
+	"github.com/l0k18/giocore/app/internal/xkb"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/internal/fling"
+	"github.com/l0k18/giocore/io/clipboard"
+	"github.com/l0k18/giocore/io/key"
+	"github.com/l0k18/giocore/io/pointer"
+	"github.com/l0k18/giocore/io/system"
+	"github.com/l0k18/giocore/unit"
 )
 
 // Use wayland-scanner to generate glue code for the xdg-shell and xdg-decoration extensions.

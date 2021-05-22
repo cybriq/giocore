@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/internal/opconst"
-	"github.com/l0k18/gio/io/event"
-	"github.com/l0k18/gio/io/key"
-	"github.com/l0k18/gio/op"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/internal/opconst"
+	"github.com/l0k18/giocore/io/event"
+	"github.com/l0k18/giocore/io/key"
+	"github.com/l0k18/giocore/op"
 )
 
 // Event is a pointer event.

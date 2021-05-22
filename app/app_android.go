@@ -3,7 +3,7 @@
 package app
 
 import (
-	"github.com/l0k18/gio/app/internal/wm"
+	"github.com/l0k18/giocore/app/internal/wm"
 )
 
 // JavaVM returns the global JNI JavaVM.

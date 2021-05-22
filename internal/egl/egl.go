@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/l0k18/gio/gpu"
+	"github.com/l0k18/giocore/gpu"
 )
 
 type Context struct {

@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/l0k18/gio/io/event"
-	"github.com/l0k18/gio/io/key"
-	"github.com/l0k18/gio/op"
+	"github.com/l0k18/giocore/io/event"
+	"github.com/l0k18/giocore/io/key"
+	"github.com/l0k18/giocore/op"
 )
 
 func TestKeyWakeup(t *testing.T) {

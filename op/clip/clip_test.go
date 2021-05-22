@@ -5,8 +5,8 @@ package clip
 import (
 	"testing"
 
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/op"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/op"
 )
 
 func TestOpenPathOutlinePanic(t *testing.T) {

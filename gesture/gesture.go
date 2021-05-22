@@ -15,13 +15,13 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/internal/fling"
-	"github.com/l0k18/gio/io/event"
-	"github.com/l0k18/gio/io/key"
-	"github.com/l0k18/gio/io/pointer"
-	"github.com/l0k18/gio/op"
-	"github.com/l0k18/gio/unit"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/internal/fling"
+	"github.com/l0k18/giocore/io/event"
+	"github.com/l0k18/giocore/io/key"
+	"github.com/l0k18/giocore/io/pointer"
+	"github.com/l0k18/giocore/op"
+	"github.com/l0k18/giocore/unit"
 )
 
 // The duration is somewhat arbitrary.

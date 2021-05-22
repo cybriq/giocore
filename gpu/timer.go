@@ -5,7 +5,7 @@ package gpu
 import (
 	"time"
 
-	"github.com/l0k18/gio/gpu/internal/driver"
+	"github.com/l0k18/giocore/gpu/internal/driver"
 )
 
 type timers struct {

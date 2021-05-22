@@ -10,3 +10,7 @@ The library will be updated to incorporate upstream patches from time to
 time to maintain parity with the latest core updates, but it will not be
 strictly up to date, there may be a lag of up to 3 months behind the main
 from time to time.
+
+This repository will still contain the `main` branch from gioui.org but
+the default is set to `master` which will be what the github servers provide
+when the branch is not specified.

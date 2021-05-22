@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/l0k18/gio/io/event"
-	"github.com/l0k18/gio/io/pointer"
-	"github.com/l0k18/gio/io/router"
-	"github.com/l0k18/gio/op"
+	"github.com/l0k18/giocore/io/event"
+	"github.com/l0k18/giocore/io/pointer"
+	"github.com/l0k18/giocore/io/router"
+	"github.com/l0k18/giocore/op"
 )
 
 func TestMouseClicks(t *testing.T) {

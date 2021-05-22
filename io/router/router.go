@@ -14,14 +14,14 @@ import (
 	"encoding/binary"
 	"time"
 
-	"github.com/l0k18/gio/internal/opconst"
-	"github.com/l0k18/gio/internal/ops"
-	"github.com/l0k18/gio/io/clipboard"
-	"github.com/l0k18/gio/io/event"
-	"github.com/l0k18/gio/io/key"
-	"github.com/l0k18/gio/io/pointer"
-	"github.com/l0k18/gio/io/profile"
-	"github.com/l0k18/gio/op"
+	"github.com/l0k18/giocore/internal/opconst"
+	"github.com/l0k18/giocore/internal/ops"
+	"github.com/l0k18/giocore/io/clipboard"
+	"github.com/l0k18/giocore/io/event"
+	"github.com/l0k18/giocore/io/key"
+	"github.com/l0k18/giocore/io/pointer"
+	"github.com/l0k18/giocore/io/profile"
+	"github.com/l0k18/giocore/op"
 )
 
 // Router is a Queue implementation that routes events

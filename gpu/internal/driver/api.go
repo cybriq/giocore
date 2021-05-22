@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/l0k18/gio/internal/gl"
+	"github.com/l0k18/giocore/internal/gl"
 )
 
 // See gpu/api.go for documentation for the API types.

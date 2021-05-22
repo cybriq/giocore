@@ -7,8 +7,8 @@ package wm
 import (
 	"errors"
 
-	"github.com/l0k18/gio/gpu"
-	"github.com/l0k18/gio/internal/gl"
+	"github.com/l0k18/giocore/gpu"
+	"github.com/l0k18/giocore/internal/gl"
 )
 
 /*

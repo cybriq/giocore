@@ -27,7 +27,7 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
-	"github.com/l0k18/gio/io/pointer"
+	"github.com/l0k18/giocore/io/pointer"
 )
 
 // displayLink is the state for a display link (CVDisplayLinkRef on macOS,

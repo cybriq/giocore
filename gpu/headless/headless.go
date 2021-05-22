@@ -9,9 +9,9 @@ import (
 	"image/color"
 	"runtime"
 
-	"github.com/l0k18/gio/gpu"
-	"github.com/l0k18/gio/gpu/internal/driver"
-	"github.com/l0k18/gio/op"
+	"github.com/l0k18/giocore/gpu"
+	"github.com/l0k18/giocore/gpu/internal/driver"
+	"github.com/l0k18/giocore/op"
 )
 
 // Window is a headless window.

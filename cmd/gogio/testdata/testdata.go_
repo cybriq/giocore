@@ -9,13 +9,13 @@ import (
 	"image/color"
 	"log"
 
-	"github.com/l0k18/gio/app"
-	"github.com/l0k18/gio/io/pointer"
-	"github.com/l0k18/gio/io/system"
-	"github.com/l0k18/gio/layout"
-	"github.com/l0k18/gio/op"
-	"github.com/l0k18/gio/op/clip"
-	"github.com/l0k18/gio/op/paint"
+	"github.com/l0k18/giocore/app"
+	"github.com/l0k18/giocore/io/pointer"
+	"github.com/l0k18/giocore/io/system"
+	"github.com/l0k18/giocore/layout"
+	"github.com/l0k18/giocore/op"
+	"github.com/l0k18/giocore/op/clip"
+	"github.com/l0k18/giocore/op/paint"
 )
 
 func main() {

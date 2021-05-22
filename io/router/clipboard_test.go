@@ -3,9 +3,9 @@ package router
 import (
 	"testing"
 
-	"github.com/l0k18/gio/io/clipboard"
-	"github.com/l0k18/gio/io/event"
-	"github.com/l0k18/gio/op"
+	"github.com/l0k18/giocore/io/clipboard"
+	"github.com/l0k18/giocore/io/event"
+	"github.com/l0k18/giocore/op"
 )
 
 func TestClipboardDuplicateEvent(t *testing.T) {

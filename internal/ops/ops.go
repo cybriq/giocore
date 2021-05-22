@@ -6,10 +6,10 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/internal/byteslice"
-	"github.com/l0k18/gio/internal/opconst"
-	"github.com/l0k18/gio/internal/scene"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/internal/byteslice"
+	"github.com/l0k18/giocore/internal/opconst"
+	"github.com/l0k18/giocore/internal/scene"
 )
 
 func DecodeCommand(d []byte) scene.Command {

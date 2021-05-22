@@ -10,9 +10,9 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/l0k18/gio/gpu/internal/driver"
-	"github.com/l0k18/gio/internal/gl"
-	"github.com/l0k18/gio/internal/srgb"
+	"github.com/l0k18/giocore/gpu/internal/driver"
+	"github.com/l0k18/giocore/internal/gl"
+	"github.com/l0k18/giocore/internal/srgb"
 )
 
 // Backend implements driver.Device.

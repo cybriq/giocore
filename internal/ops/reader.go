@@ -5,9 +5,9 @@ package ops
 import (
 	"encoding/binary"
 
-	"github.com/l0k18/gio/f32"
-	"github.com/l0k18/gio/internal/opconst"
-	"github.com/l0k18/gio/op"
+	"github.com/l0k18/giocore/f32"
+	"github.com/l0k18/giocore/internal/opconst"
+	"github.com/l0k18/giocore/op"
 )
 
 // Reader parses an ops list.

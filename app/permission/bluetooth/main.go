@@ -19,6 +19,6 @@ device may be used.
 See https://developer.android.com/guide/topics/connectivity/bluetooth.
 
 ACCESS_FINE_LOCATION is a "dangerous" permission. See documentation for
-package github.com/l0k18/gio/app/permission for more information.
+package github.com/l0k18/giocore/app/permission for more information.
 */
 package bluetooth

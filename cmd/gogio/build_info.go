@@ -85,10 +85,10 @@ func getLdFlags(appID string) string {
 		ldflags = append(ldflags, strings.Split(extra, " ")...)
 	}
 	// Pass appID along, to be used for logging on platforms like Android.
-	ldflags = append(ldflags, fmt.Sprintf("-X github.com/l0k18/gio/app/internal/log.appID=%s", appID))
+	ldflags = append(ldflags, fmt.Sprintf("-X github.com/l0k18/giocore/app/internal/log.appID=%s", appID))
 	// Pass along all remaining arguments to the app.
 	if appArgs := flag.Args()[1:]; len(appArgs) > 0 {
-		ldflags = append(ldflags, fmt.Sprintf("-X github.com/l0k18/gio/app.extraArgs=%s", strings.Join(appArgs, "|")))
+		ldflags = append(ldflags, fmt.Sprintf("-X github.com/l0k18/giocore/app.extraArgs=%s", strings.Join(appArgs, "|")))
 	}
 	if m := *linkMode; m != "" {
 		ldflags = append(ldflags, "-linkmode="+m)

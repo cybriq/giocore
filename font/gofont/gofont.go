@@ -24,8 +24,8 @@ import (
 	"golang.org/x/image/font/gofont/gosmallcaps"
 	"golang.org/x/image/font/gofont/gosmallcapsitalic"
 
-	"github.com/l0k18/gio/font/opentype"
-	"github.com/l0k18/gio/text"
+	"github.com/l0k18/giocore/font/opentype"
+	"github.com/l0k18/giocore/text"
 )
 
 var (
