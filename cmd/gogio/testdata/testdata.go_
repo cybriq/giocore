@@ -9,13 +9,13 @@ import (
 	"image/color"
 	"log"
 
-	"gioui.org/app"
-	"gioui.org/io/pointer"
-	"gioui.org/io/system"
-	"gioui.org/layout"
-	"gioui.org/op"
-	"gioui.org/op/clip"
-	"gioui.org/op/paint"
+	"github.com/l0k18/gio/app"
+	"github.com/l0k18/gio/io/pointer"
+	"github.com/l0k18/gio/io/system"
+	"github.com/l0k18/gio/layout"
+	"github.com/l0k18/gio/op"
+	"github.com/l0k18/gio/op/clip"
+	"github.com/l0k18/gio/op/paint"
 )
 
 func main() {

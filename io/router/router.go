@@ -14,14 +14,14 @@ import (
 	"encoding/binary"
 	"time"
 
-	"gioui.org/internal/opconst"
-	"gioui.org/internal/ops"
-	"gioui.org/io/clipboard"
-	"gioui.org/io/event"
-	"gioui.org/io/key"
-	"gioui.org/io/pointer"
-	"gioui.org/io/profile"
-	"gioui.org/op"
+	"github.com/l0k18/gio/internal/opconst"
+	"github.com/l0k18/gio/internal/ops"
+	"github.com/l0k18/gio/io/clipboard"
+	"github.com/l0k18/gio/io/event"
+	"github.com/l0k18/gio/io/key"
+	"github.com/l0k18/gio/io/pointer"
+	"github.com/l0k18/gio/io/profile"
+	"github.com/l0k18/gio/op"
 )
 
 // Router is a Queue implementation that routes events

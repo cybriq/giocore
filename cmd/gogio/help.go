@@ -2,7 +2,7 @@
 
 package main
 
-const mainUsage = `The gogio command builds and packages Gio (gioui.org) programs.
+const mainUsage = `The gogio command builds and packages Gio (github.com/l0k18/gio) programs.
 
 Usage:
 

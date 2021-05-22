@@ -7,7 +7,7 @@ package wm
 import (
 	"unsafe"
 
-	"gioui.org/internal/egl"
+	"github.com/l0k18/gio/internal/egl"
 )
 
 type x11Context struct {

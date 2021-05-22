@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"gioui.org/app/internal/wm"
+	"github.com/l0k18/gio/app/internal/wm"
 )
 
 var (

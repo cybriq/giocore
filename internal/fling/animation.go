@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	"gioui.org/unit"
+	"github.com/l0k18/gio/unit"
 )
 
 type Animation struct {

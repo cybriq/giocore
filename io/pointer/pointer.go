@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"gioui.org/f32"
-	"gioui.org/internal/opconst"
-	"gioui.org/io/event"
-	"gioui.org/io/key"
-	"gioui.org/op"
+	"github.com/l0k18/gio/f32"
+	"github.com/l0k18/gio/internal/opconst"
+	"github.com/l0k18/gio/io/event"
+	"github.com/l0k18/gio/io/key"
+	"github.com/l0k18/gio/op"
 )
 
 // Event is a pointer event.

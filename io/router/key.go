@@ -3,11 +3,11 @@
 package router
 
 import (
-	"gioui.org/internal/opconst"
-	"gioui.org/internal/ops"
-	"gioui.org/io/event"
-	"gioui.org/io/key"
-	"gioui.org/op"
+	"github.com/l0k18/gio/internal/opconst"
+	"github.com/l0k18/gio/internal/ops"
+	"github.com/l0k18/gio/io/event"
+	"github.com/l0k18/gio/io/key"
+	"github.com/l0k18/gio/op"
 )
 
 type TextInputState uint8

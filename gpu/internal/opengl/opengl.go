@@ -10,9 +10,9 @@ import (
 	"time"
 	"unsafe"
 
-	"gioui.org/gpu/internal/driver"
-	"gioui.org/internal/gl"
-	"gioui.org/internal/srgb"
+	"github.com/l0k18/gio/gpu/internal/driver"
+	"github.com/l0k18/gio/internal/gl"
+	"github.com/l0k18/gio/internal/srgb"
 )
 
 // Backend implements driver.Device.

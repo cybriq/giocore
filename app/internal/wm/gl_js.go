@@ -6,8 +6,8 @@ import (
 	"errors"
 	"syscall/js"
 
-	"gioui.org/gpu"
-	"gioui.org/internal/gl"
+	"github.com/l0k18/gio/gpu"
+	"github.com/l0k18/gio/internal/gl"
 )
 
 type context struct {

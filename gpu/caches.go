@@ -5,8 +5,8 @@ package gpu
 import (
 	"fmt"
 
-	"gioui.org/f32"
-	"gioui.org/internal/ops"
+	"github.com/l0k18/gio/f32"
+	"github.com/l0k18/gio/internal/ops"
 )
 
 type resourceCache struct {

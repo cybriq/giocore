@@ -8,11 +8,11 @@ import (
 	"errors"
 	"image/color"
 
-	"gioui.org/gpu"
-	"gioui.org/io/event"
-	"gioui.org/io/pointer"
-	"gioui.org/io/system"
-	"gioui.org/unit"
+	"github.com/l0k18/gio/gpu"
+	"github.com/l0k18/gio/io/event"
+	"github.com/l0k18/gio/io/pointer"
+	"github.com/l0k18/gio/io/system"
+	"github.com/l0k18/gio/unit"
 )
 
 type Size struct {

@@ -5,7 +5,7 @@ package text
 import (
 	"golang.org/x/image/math/fixed"
 
-	"gioui.org/op"
+	"github.com/l0k18/gio/op"
 )
 
 type layoutCache struct {

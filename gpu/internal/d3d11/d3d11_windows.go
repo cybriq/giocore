@@ -12,8 +12,8 @@ import (
 
 	"golang.org/x/sys/windows"
 
-	"gioui.org/gpu/internal/driver"
-	"gioui.org/internal/d3d11"
+	"github.com/l0k18/gio/gpu/internal/driver"
+	"github.com/l0k18/gio/internal/d3d11"
 )
 
 type Backend struct {

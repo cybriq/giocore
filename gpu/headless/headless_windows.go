@@ -5,8 +5,8 @@ package headless
 import (
 	"unsafe"
 
-	"gioui.org/gpu"
-	"gioui.org/internal/d3d11"
+	"github.com/l0k18/gio/gpu"
+	"github.com/l0k18/gio/internal/d3d11"
 )
 
 type d3d11Context struct {

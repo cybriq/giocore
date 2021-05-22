@@ -2,7 +2,7 @@
 
 package gpu
 
-import "gioui.org/gpu/internal/driver"
+import "github.com/l0k18/gio/gpu/internal/driver"
 
 var (
 	shader_backdrop_comp = driver.ShaderSources{

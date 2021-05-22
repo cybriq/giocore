@@ -10,7 +10,7 @@ import (
 
 	syscall "golang.org/x/sys/windows"
 
-	"gioui.org/internal/gl"
+	"github.com/l0k18/gio/internal/gl"
 )
 
 type (

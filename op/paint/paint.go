@@ -9,10 +9,10 @@ import (
 	"image/draw"
 	"math"
 
-	"gioui.org/f32"
-	"gioui.org/internal/opconst"
-	"gioui.org/op"
-	"gioui.org/op/clip"
+	"github.com/l0k18/gio/f32"
+	"github.com/l0k18/gio/internal/opconst"
+	"github.com/l0k18/gio/op"
+	"github.com/l0k18/gio/op/clip"
 )
 
 // ImageOp sets the brush to an image.
@@ -48,7 +48,7 @@ type PaintOp struct {
 }
 
 // NewImageOp creates an ImageOp backed by src. See
-// gioui.org/io/system.FrameEvent for a description of when data
+// github.com/l0k18/gio/io/system.FrameEvent for a description of when data
 // referenced by operations is safe to re-use.
 //
 // NewImageOp assumes the backing image is immutable, and may cache a

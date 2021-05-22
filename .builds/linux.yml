@@ -81,8 +81,8 @@ tasks:
      mkdir tmp
      cd tmp
      go mod init example.com
-     go get -d gioui.org/example/kitchen
-     gogio -target android gioui.org/example/kitchen
+     go get -d github.com/l0k18/gio/example/kitchen
+     gogio -target android github.com/l0k18/gio/example/kitchen
  - check_gofmt: |
      cd gio
      test -z "$(gofmt -s -l .)"

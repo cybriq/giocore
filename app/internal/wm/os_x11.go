@@ -35,16 +35,16 @@ import (
 	"time"
 	"unsafe"
 
-	"gioui.org/f32"
-	"gioui.org/io/clipboard"
-	"gioui.org/io/key"
-	"gioui.org/io/pointer"
-	"gioui.org/io/system"
-	"gioui.org/unit"
+	"github.com/l0k18/gio/f32"
+	"github.com/l0k18/gio/io/clipboard"
+	"github.com/l0k18/gio/io/key"
+	"github.com/l0k18/gio/io/pointer"
+	"github.com/l0k18/gio/io/system"
+	"github.com/l0k18/gio/unit"
 
 	syscall "golang.org/x/sys/unix"
 
-	"gioui.org/app/internal/xkb"
+	"github.com/l0k18/gio/app/internal/xkb"
 )
 
 type x11Window struct {
