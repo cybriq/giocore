@@ -19,6 +19,8 @@ type Functions struct {
 	// Cached JS arrays.
 	arrayBuf js.Value
 	int32Buf js.Value
+
+	isWebGL2 bool
 }
 
 type Context js.Value
@@ -36,8 +38,8 @@ func NewFunctions(ctx Context, forceES bool) (*Functions, error) {
 
 func (f *Functions) Init() error {
 	webgl2Class := js.Global().Get("WebGL2RenderingContext")
-	iswebgl2 := !webgl2Class.IsUndefined() && f.Ctx.InstanceOf(webgl2Class)
-	if !iswebgl2 {
+	f.isWebGL2 = !webgl2Class.IsUndefined() && f.Ctx.InstanceOf(webgl2Class)
+	if !f.isWebGL2 {
 		f.EXT_disjoint_timer_query = f.getExtension("EXT_disjoint_timer_query")
 		if f.getExtension("OES_texture_half_float").IsNull() && f.getExtension("OES_texture_float").IsNull() {
 			return errors.New("gl: no support for neither OES_texture_half_float nor OES_texture_float")
@@ -93,6 +95,9 @@ func (f *Functions) BindTexture(target Enum, t Texture) {
 func (f *Functions) BindImageTexture(unit int, t Texture, level int, layered bool, layer int, access, format Enum) {
 	panic("not implemented")
 }
+func (f *Functions) BindVertexArray(a VertexArray) {
+	panic("not supported")
+}
 func (f *Functions) BlendEquation(mode Enum) {
 	f.Ctx.Call("blendEquation", int(mode))
 }
@@ -144,6 +149,9 @@ func (f *Functions) CreateShader(ty Enum) Shader {
 func (f *Functions) CreateTexture() Texture {
 	return Texture(f.Ctx.Call("createTexture"))
 }
+func (f *Functions) CreateVertexArray() VertexArray {
+	panic("not supported")
+}
 func (f *Functions) DeleteBuffer(v Buffer) {
 	f.Ctx.Call("deleteBuffer", js.Value(v))
 }
@@ -168,6 +176,9 @@ func (f *Functions) DeleteRenderbuffer(v Renderbuffer) {
 }
 func (f *Functions) DeleteTexture(v Texture) {
 	f.Ctx.Call("deleteTexture", js.Value(v))
+}
+func (f *Functions) DeleteVertexArray(a VertexArray) {
+	panic("not implemented")
 }
 func (f *Functions) DepthFunc(fn Enum) {
 	f.Ctx.Call("depthFunc", int(fn))
@@ -206,6 +217,9 @@ func (f *Functions) EndQuery(target Enum) {
 func (f *Functions) Finish() {
 	f.Ctx.Call("finish")
 }
+func (f *Functions) Flush() {
+	f.Ctx.Call("flush")
+}
 func (f *Functions) FramebufferRenderbuffer(target, attachment, renderbuffertarget Enum, renderbuffer Renderbuffer) {
 	f.Ctx.Call("framebufferRenderbuffer", int(target), int(attachment), int(renderbuffertarget), js.Value(renderbuffer))
 }
@@ -220,6 +234,10 @@ func (f *Functions) GetRenderbufferParameteri(target, pname Enum) int {
 	return paramVal(f.Ctx.Call("getRenderbufferParameteri", int(pname)))
 }
 func (f *Functions) GetFramebufferAttachmentParameteri(target, attachment, pname Enum) int {
+	if !f.isWebGL2 && pname == FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING {
+		// FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING is only available on WebGL 2
+		return LINEAR
+	}
 	return paramVal(f.Ctx.Call("getFramebufferAttachmentParameter", int(target), int(attachment), int(pname)))
 }
 func (f *Functions) GetBinding(pname Enum) Object {
