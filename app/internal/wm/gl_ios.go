@@ -21,8 +21,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/l0k18/giocore/gpu"
-	"github.com/l0k18/giocore/internal/gl"
+	"github.com/cybriq/giocore/gpu"
+	"github.com/cybriq/giocore/internal/gl"
 )
 
 type context struct {

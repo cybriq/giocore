@@ -9,16 +9,16 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/l0k18/giocore/io/event"
-	"github.com/l0k18/giocore/io/pointer"
-	"github.com/l0k18/giocore/io/profile"
-	"github.com/l0k18/giocore/io/router"
-	"github.com/l0k18/giocore/io/system"
-	"github.com/l0k18/giocore/op"
-	"github.com/l0k18/giocore/unit"
+	"github.com/cybriq/giocore/io/event"
+	"github.com/cybriq/giocore/io/pointer"
+	"github.com/cybriq/giocore/io/profile"
+	"github.com/cybriq/giocore/io/router"
+	"github.com/cybriq/giocore/io/system"
+	"github.com/cybriq/giocore/op"
+	"github.com/cybriq/giocore/unit"
 
-	_ "github.com/l0k18/giocore/app/internal/log"
-	"github.com/l0k18/giocore/app/internal/wm"
+	_ "github.com/cybriq/giocore/app/internal/log"
+	"github.com/cybriq/giocore/app/internal/wm"
 )
 
 // WindowOption configures a wm.

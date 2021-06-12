@@ -10,7 +10,7 @@ import (
 
 	syscall "golang.org/x/sys/windows"
 
-	"github.com/l0k18/giocore/internal/gl"
+	"github.com/cybriq/giocore/internal/gl"
 )
 
 type (

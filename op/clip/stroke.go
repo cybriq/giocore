@@ -6,8 +6,8 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/l0k18/giocore/internal/opconst"
-	"github.com/l0k18/giocore/op"
+	"github.com/cybriq/giocore/internal/opconst"
+	"github.com/cybriq/giocore/op"
 )
 
 // Stroke represents a stroked path.

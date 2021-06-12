@@ -15,9 +15,9 @@ import (
 	"golang.org/x/image/font/sfnt"
 	"golang.org/x/image/math/fixed"
 
-	"github.com/l0k18/giocore/internal/ops"
-	"github.com/l0k18/giocore/op"
-	"github.com/l0k18/giocore/text"
+	"github.com/cybriq/giocore/internal/ops"
+	"github.com/cybriq/giocore/op"
+	"github.com/cybriq/giocore/text"
 )
 
 func TestCollectionAsFace(t *testing.T) {

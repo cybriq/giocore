@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/l0k18/giocore/unit"
+	"github.com/cybriq/giocore/unit"
 )
 
 type Animation struct {

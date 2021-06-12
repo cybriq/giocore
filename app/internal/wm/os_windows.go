@@ -17,15 +17,15 @@ import (
 
 	syscall "golang.org/x/sys/windows"
 
-	"github.com/l0k18/giocore/app/internal/windows"
-	"github.com/l0k18/giocore/unit"
+	"github.com/cybriq/giocore/app/internal/windows"
+	"github.com/cybriq/giocore/unit"
 	gowindows "golang.org/x/sys/windows"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/io/clipboard"
-	"github.com/l0k18/giocore/io/key"
-	"github.com/l0k18/giocore/io/pointer"
-	"github.com/l0k18/giocore/io/system"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/io/clipboard"
+	"github.com/cybriq/giocore/io/key"
+	"github.com/cybriq/giocore/io/pointer"
+	"github.com/cybriq/giocore/io/system"
 )
 
 type ViewEvent struct {

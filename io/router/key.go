@@ -3,11 +3,11 @@
 package router
 
 import (
-	"github.com/l0k18/giocore/internal/opconst"
-	"github.com/l0k18/giocore/internal/ops"
-	"github.com/l0k18/giocore/io/event"
-	"github.com/l0k18/giocore/io/key"
-	"github.com/l0k18/giocore/op"
+	"github.com/cybriq/giocore/internal/opconst"
+	"github.com/cybriq/giocore/internal/ops"
+	"github.com/cybriq/giocore/io/event"
+	"github.com/cybriq/giocore/io/key"
+	"github.com/cybriq/giocore/op"
 )
 
 type TextInputState uint8

@@ -6,14 +6,14 @@ import (
 	"math"
 	"testing"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/font/gofont"
-	"github.com/l0k18/giocore/gpu/headless"
-	"github.com/l0k18/giocore/layout"
-	"github.com/l0k18/giocore/op"
-	"github.com/l0k18/giocore/op/clip"
-	"github.com/l0k18/giocore/op/paint"
-	"github.com/l0k18/giocore/widget/material"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/font/gofont"
+	"github.com/cybriq/giocore/gpu/headless"
+	"github.com/cybriq/giocore/layout"
+	"github.com/cybriq/giocore/op"
+	"github.com/cybriq/giocore/op/clip"
+	"github.com/cybriq/giocore/op/paint"
+	"github.com/cybriq/giocore/widget/material"
 )
 
 // use some global variables for benchmarking so as to not pollute

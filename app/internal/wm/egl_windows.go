@@ -5,7 +5,7 @@ package wm
 import (
 	"golang.org/x/sys/windows"
 
-	"github.com/l0k18/giocore/internal/egl"
+	"github.com/cybriq/giocore/internal/egl"
 )
 
 type glContext struct {

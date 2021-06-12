@@ -6,14 +6,14 @@ package wm
 
 import (
 	"errors"
-	"gioui.org/io/key"
+	"github.com/cybriq/giocore/io/key"
 	"image/color"
 
-	"github.com/l0k18/giocore/gpu"
-	"github.com/l0k18/giocore/io/event"
-	"github.com/l0k18/giocore/io/pointer"
-	"github.com/l0k18/giocore/io/system"
-	"github.com/l0k18/giocore/unit"
+	"github.com/cybriq/giocore/gpu"
+	"github.com/cybriq/giocore/io/event"
+	"github.com/cybriq/giocore/io/pointer"
+	"github.com/cybriq/giocore/io/system"
+	"github.com/cybriq/giocore/unit"
 )
 
 type Size struct {

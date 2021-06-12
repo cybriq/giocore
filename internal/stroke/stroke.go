@@ -29,9 +29,9 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/internal/ops"
-	"github.com/l0k18/giocore/internal/scene"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/internal/ops"
+	"github.com/cybriq/giocore/internal/scene"
 )
 
 // The following are copies of types from op/clip to avoid a circular import of

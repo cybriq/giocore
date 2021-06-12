@@ -7,12 +7,12 @@ import (
 	"image"
 	"math"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/internal/opconst"
-	"github.com/l0k18/giocore/internal/ops"
-	"github.com/l0k18/giocore/internal/scene"
-	"github.com/l0k18/giocore/internal/stroke"
-	"github.com/l0k18/giocore/op"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/internal/opconst"
+	"github.com/cybriq/giocore/internal/ops"
+	"github.com/cybriq/giocore/internal/scene"
+	"github.com/cybriq/giocore/internal/stroke"
+	"github.com/cybriq/giocore/op"
 )
 
 // Op represents a clip area. Op intersects the current clip area with

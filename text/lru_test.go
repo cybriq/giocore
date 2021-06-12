@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/l0k18/giocore/op"
+	"github.com/cybriq/giocore/op"
 )
 
 func TestLayoutLRU(t *testing.T) {

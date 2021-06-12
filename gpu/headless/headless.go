@@ -9,9 +9,9 @@ import (
 	"image/color"
 	"runtime"
 
-	"github.com/l0k18/giocore/gpu"
-	"github.com/l0k18/giocore/gpu/internal/driver"
-	"github.com/l0k18/giocore/op"
+	"github.com/cybriq/giocore/gpu"
+	"github.com/cybriq/giocore/gpu/internal/driver"
+	"github.com/cybriq/giocore/op"
 )
 
 // Window is a headless window.

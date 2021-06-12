@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/l0k18/giocore/internal/byteslice"
-	"github.com/l0k18/giocore/internal/gl"
+	"github.com/cybriq/giocore/internal/byteslice"
+	"github.com/cybriq/giocore/internal/gl"
 )
 
 // SRGBFBO implements an intermediate sRGB FBO

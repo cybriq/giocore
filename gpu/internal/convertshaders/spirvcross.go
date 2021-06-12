@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/l0k18/giocore/gpu/internal/driver"
+	"github.com/cybriq/giocore/gpu/internal/driver"
 )
 
 // Metadata contains reflection data about a shader.

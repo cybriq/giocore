@@ -3,8 +3,8 @@
 package headless
 
 import (
-	"github.com/l0k18/giocore/gpu"
-	_ "github.com/l0k18/giocore/internal/cocoainit"
+	"github.com/cybriq/giocore/gpu"
+	_ "github.com/cybriq/giocore/internal/cocoainit"
 )
 
 /*

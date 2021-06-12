@@ -8,11 +8,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/io/event"
-	"github.com/l0k18/giocore/io/key"
-	"github.com/l0k18/giocore/io/pointer"
-	"github.com/l0k18/giocore/op"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/io/event"
+	"github.com/cybriq/giocore/io/key"
+	"github.com/cybriq/giocore/io/pointer"
+	"github.com/cybriq/giocore/op"
 )
 
 func TestPointerWakeup(t *testing.T) {

@@ -37,12 +37,12 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/io/clipboard"
-	"github.com/l0k18/giocore/io/key"
-	"github.com/l0k18/giocore/io/pointer"
-	"github.com/l0k18/giocore/io/system"
-	"github.com/l0k18/giocore/unit"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/io/clipboard"
+	"github.com/cybriq/giocore/io/key"
+	"github.com/cybriq/giocore/io/pointer"
+	"github.com/cybriq/giocore/io/system"
+	"github.com/cybriq/giocore/unit"
 )
 
 type ViewEvent struct{}

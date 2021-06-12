@@ -10,7 +10,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/l0k18/giocore/f32"
+	"github.com/cybriq/giocore/f32"
 )
 
 type DashOp struct {

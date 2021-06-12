@@ -3,9 +3,9 @@
 package clipboard
 
 import (
-	"github.com/l0k18/giocore/internal/opconst"
-	"github.com/l0k18/giocore/io/event"
-	"github.com/l0k18/giocore/op"
+	"github.com/cybriq/giocore/internal/opconst"
+	"github.com/cybriq/giocore/io/event"
+	"github.com/cybriq/giocore/op"
 )
 
 // Event is generated when the clipboard content is requested.

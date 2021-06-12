@@ -5,7 +5,7 @@
 package headless
 
 import (
-	"github.com/l0k18/giocore/internal/egl"
+	"github.com/cybriq/giocore/internal/egl"
 )
 
 func newGLContext() (context, error) {

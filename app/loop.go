@@ -7,9 +7,9 @@ import (
 	"image/color"
 	"runtime"
 
-	"github.com/l0k18/giocore/app/internal/wm"
-	"github.com/l0k18/giocore/gpu"
-	"github.com/l0k18/giocore/op"
+	"github.com/cybriq/giocore/app/internal/wm"
+	"github.com/cybriq/giocore/gpu"
+	"github.com/cybriq/giocore/op"
 )
 
 type renderLoop struct {

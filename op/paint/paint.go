@@ -9,10 +9,10 @@ import (
 	"image/draw"
 	"math"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/internal/opconst"
-	"github.com/l0k18/giocore/op"
-	"github.com/l0k18/giocore/op/clip"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/internal/opconst"
+	"github.com/cybriq/giocore/op"
+	"github.com/cybriq/giocore/op/clip"
 )
 
 // ImageOp sets the brush to an image.
@@ -48,7 +48,7 @@ type PaintOp struct {
 }
 
 // NewImageOp creates an ImageOp backed by src. See
-// github.com/l0k18/giocore/io/system.FrameEvent for a description of when data
+// github.com/cybriq/giocore/io/system.FrameEvent for a description of when data
 // referenced by operations is safe to re-use.
 //
 // NewImageOp assumes the backing image is immutable, and may cache a

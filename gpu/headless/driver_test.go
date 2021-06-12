@@ -12,9 +12,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/l0k18/giocore/gpu/internal/driver"
-	"github.com/l0k18/giocore/internal/byteslice"
-	"github.com/l0k18/giocore/internal/f32color"
+	"github.com/cybriq/giocore/gpu/internal/driver"
+	"github.com/cybriq/giocore/internal/byteslice"
+	"github.com/cybriq/giocore/internal/f32color"
 )
 
 var dumpImages = flag.Bool("saveimages", false, "save test images")

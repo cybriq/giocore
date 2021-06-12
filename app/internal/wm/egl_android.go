@@ -11,7 +11,7 @@ import "C"
 import (
 	"unsafe"
 
-	"github.com/l0k18/giocore/internal/egl"
+	"github.com/cybriq/giocore/internal/egl"
 )
 
 type context struct {

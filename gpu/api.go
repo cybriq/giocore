@@ -2,7 +2,7 @@
 
 package gpu
 
-import "github.com/l0k18/giocore/gpu/internal/driver"
+import "github.com/cybriq/giocore/gpu/internal/driver"
 
 // An API carries the necessary GPU API specific resources to create a Device.
 // There is an API type for each supported GPU API such as OpenGL and Direct3D.

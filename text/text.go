@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/image/math/fixed"
 
-	"github.com/l0k18/giocore/op"
+	"github.com/cybriq/giocore/op"
 )
 
 // A Line contains the measurements of a line of text.

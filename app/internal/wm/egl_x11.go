@@ -7,7 +7,7 @@ package wm
 import (
 	"unsafe"
 
-	"github.com/l0k18/giocore/internal/egl"
+	"github.com/cybriq/giocore/internal/egl"
 )
 
 type x11Context struct {

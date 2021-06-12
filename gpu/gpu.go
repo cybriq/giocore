@@ -19,21 +19,21 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/gpu/internal/driver"
-	"github.com/l0k18/giocore/internal/byteslice"
-	"github.com/l0k18/giocore/internal/f32color"
-	"github.com/l0k18/giocore/internal/opconst"
-	"github.com/l0k18/giocore/internal/ops"
-	"github.com/l0k18/giocore/internal/scene"
-	"github.com/l0k18/giocore/internal/stroke"
-	"github.com/l0k18/giocore/op"
-	"github.com/l0k18/giocore/op/clip"
-	layout "github.com/l0k18/giocore/utils"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/gpu/internal/driver"
+	"github.com/cybriq/giocore/internal/byteslice"
+	"github.com/cybriq/giocore/internal/f32color"
+	"github.com/cybriq/giocore/internal/opconst"
+	"github.com/cybriq/giocore/internal/ops"
+	"github.com/cybriq/giocore/internal/scene"
+	"github.com/cybriq/giocore/internal/stroke"
+	"github.com/cybriq/giocore/op"
+	"github.com/cybriq/giocore/op/clip"
+	layout "github.com/cybriq/giocore/utils"
 
 	// Register backends.
-	_ "github.com/l0k18/giocore/gpu/internal/d3d11"
-	_ "github.com/l0k18/giocore/gpu/internal/opengl"
+	_ "github.com/cybriq/giocore/gpu/internal/d3d11"
+	_ "github.com/cybriq/giocore/gpu/internal/opengl"
 )
 
 type GPU interface {
@@ -982,7 +982,7 @@ loop:
 			}
 			z++
 			if z != int(uint16(z)) {
-				// TODO(eliasnaur) github.com/l0k18/giocore/issue/127.
+				// TODO(eliasnaur) github.com/cybriq/giocore/issue/127.
 				panic("more than 65k paint objects not supported")
 			}
 			// Assume 16-bit depth buffer.

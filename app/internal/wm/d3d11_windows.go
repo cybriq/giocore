@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/l0k18/giocore/gpu"
-	"github.com/l0k18/giocore/internal/d3d11"
+	"github.com/cybriq/giocore/gpu"
+	"github.com/cybriq/giocore/internal/d3d11"
 )
 
 type d3d11Context struct {

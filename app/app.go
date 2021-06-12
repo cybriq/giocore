@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/l0k18/giocore/app/internal/wm"
+	"github.com/cybriq/giocore/app/internal/wm"
 )
 
 // ViewEvent carries the platform specific window handles for

@@ -14,8 +14,8 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
-	"github.com/l0k18/giocore/io/event"
-	"github.com/l0k18/giocore/io/key"
+	"github.com/cybriq/giocore/io/event"
+	"github.com/cybriq/giocore/io/key"
 )
 
 /*

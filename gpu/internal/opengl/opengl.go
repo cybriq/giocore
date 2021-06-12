@@ -10,8 +10,8 @@ import (
 	"time"
 	"unsafe"
 
-	"gioui.org/gpu/internal/driver"
-	"gioui.org/internal/gl"
+	"github.com/cybriq/giocore/gpu/internal/driver"
+	"github.com/cybriq/giocore/internal/gl"
 )
 
 // Backend implements driver.Device.

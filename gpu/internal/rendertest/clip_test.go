@@ -7,10 +7,10 @@ import (
 
 	"golang.org/x/image/colornames"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/op"
-	"github.com/l0k18/giocore/op/clip"
-	"github.com/l0k18/giocore/op/paint"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/op"
+	"github.com/cybriq/giocore/op/clip"
+	"github.com/cybriq/giocore/op/paint"
 )
 
 func TestPaintRect(t *testing.T) {

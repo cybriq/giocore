@@ -2,7 +2,7 @@
 
 package headless
 
-import "github.com/l0k18/giocore/gpu/internal/driver"
+import "github.com/cybriq/giocore/gpu/internal/driver"
 
 var (
 	shader_input_vert = driver.ShaderSources{

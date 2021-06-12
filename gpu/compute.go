@@ -12,14 +12,14 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/l0k18/giocore/f32"
-	"github.com/l0k18/giocore/gpu/internal/driver"
-	"github.com/l0k18/giocore/internal/byteslice"
-	"github.com/l0k18/giocore/internal/f32color"
-	"github.com/l0k18/giocore/internal/ops"
-	"github.com/l0k18/giocore/internal/scene"
-	"github.com/l0k18/giocore/op"
-	layout "github.com/l0k18/giocore/utils"
+	"github.com/cybriq/giocore/f32"
+	"github.com/cybriq/giocore/gpu/internal/driver"
+	"github.com/cybriq/giocore/internal/byteslice"
+	"github.com/cybriq/giocore/internal/f32color"
+	"github.com/cybriq/giocore/internal/ops"
+	"github.com/cybriq/giocore/internal/scene"
+	"github.com/cybriq/giocore/op"
+	layout "github.com/cybriq/giocore/utils"
 )
 
 type compute struct {
