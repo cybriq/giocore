@@ -12,7 +12,6 @@ import (
 	"github.com/cybriq/giocore/app"
 	"github.com/cybriq/giocore/io/pointer"
 	"github.com/cybriq/giocore/io/system"
-	"github.com/cybriq/giocore/layout"
 	"github.com/cybriq/giocore/op"
 	"github.com/cybriq/giocore/op/clip"
 	"github.com/cybriq/giocore/op/paint"

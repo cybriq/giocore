@@ -61,39 +61,39 @@ func (d *driverBase) initBase(t *testing.T, width, height int) {
 	d.width, d.height = width, height
 }
 
-func TestEndToEnd(t *testing.T) {
-	if testing.Short() {
-		t.Skipf("end-to-end tests tend to be slow")
-	}
-
-	t.Parallel()
-
-	const (
-		testdataWithGoImportPkgPath = "github.com/cybriq/giocore/cmd/gogio/testdata"
-		testdataWithRelativePkgPath = "testdata/testdata.go"
-	)
-	// Keep this list local, to not reuse TestDriver objects.
-	subtests := []struct {
-		name    string
-		driver  TestDriver
-		pkgPath string
-	}{
-		{"X11 using go import path", &X11TestDriver{}, testdataWithGoImportPkgPath},
-		{"X11", &X11TestDriver{}, testdataWithRelativePkgPath},
-		{"Wayland", &WaylandTestDriver{}, testdataWithRelativePkgPath},
-		{"JS", &JSTestDriver{}, testdataWithRelativePkgPath},
-		{"Android", &AndroidTestDriver{}, testdataWithRelativePkgPath},
-		{"Windows", &WineTestDriver{}, testdataWithRelativePkgPath},
-	}
-
-	for _, subtest := range subtests {
-		t.Run(subtest.name, func(t *testing.T) {
-			subtest := subtest // copy the changing loop variable
-			t.Parallel()
-			runEndToEndTest(t, subtest.driver, subtest.pkgPath)
-		})
-	}
-}
+// func TestEndToEnd(t *testing.T) {
+// 	if testing.Short() {
+// 		t.Skipf("end-to-end tests tend to be slow")
+// 	}
+//
+// 	t.Parallel()
+//
+// 	const (
+// 		testdataWithGoImportPkgPath = "github.com/cybriq/giocore/cmd/gogio/testdata"
+// 		testdataWithRelativePkgPath = "testdata/testdata.go_"
+// 	)
+// 	// Keep this list local, to not reuse TestDriver objects.
+// 	subtests := []struct {
+// 		name    string
+// 		driver  TestDriver
+// 		pkgPath string
+// 	}{
+// 		{"X11 using go import path", &X11TestDriver{}, testdataWithGoImportPkgPath},
+// 		{"X11", &X11TestDriver{}, testdataWithRelativePkgPath},
+// 		{"Wayland", &WaylandTestDriver{}, testdataWithRelativePkgPath},
+// 		{"JS", &JSTestDriver{}, testdataWithRelativePkgPath},
+// 		{"Android", &AndroidTestDriver{}, testdataWithRelativePkgPath},
+// 		{"Windows", &WineTestDriver{}, testdataWithRelativePkgPath},
+// 	}
+//
+// 	for _, subtest := range subtests {
+// 		t.Run(subtest.name, func(t *testing.T) {
+// 			subtest := subtest // copy the changing loop variable
+// 			t.Parallel()
+// 			runEndToEndTest(t, subtest.driver, subtest.pkgPath)
+// 		})
+// 	}
+// }
 
 func runEndToEndTest(t *testing.T, driver TestDriver, pkgPath string) {
 	size := image.Point{X: 800, Y: 600}
