@@ -1,4 +1,4 @@
-module github.com/l0k18/giocore
+module github.com/cybriq/giocore
 
 go 1.14
 
