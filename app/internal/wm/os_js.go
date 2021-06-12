@@ -313,6 +313,27 @@ func (w *window) focus() {
 	w.requestFocus = true
 }
 
+func (w *window) keyboard(hint key.InputHint) {
+	var m string
+	switch hint {
+	case key.HintAny:
+		m = "text"
+	case key.HintText:
+		m = "text"
+	case key.HintNumeric:
+		m = "decimal"
+	case key.HintEmail:
+		m = "email"
+	case key.HintURL:
+		m = "url"
+	case key.HintTelephone:
+		m = "tel"
+	default:
+		m = "text"
+	}
+	w.tarea.Set("inputMode", m)
+}
+
 func (w *window) keyEvent(e js.Value, ks key.State) {
 	k := e.Get("key").String()
 	if n, ok := translateKey(k); ok {
@@ -489,6 +510,9 @@ func (w *window) WriteClipboard(s string) {
 }
 
 func (w *window) Option(opts *Options) {
+	if o := opts.Title; o != nil {
+		w.document.Set("title", *o)
+	}
 	if o := opts.WindowMode; o != nil {
 		w.windowMode(*o)
 	}
@@ -522,6 +546,10 @@ func (w *window) ShowTextInput(show bool) {
 			w.blur()
 		}
 	}()
+}
+
+func (w *window) SetInputHint(mode key.InputHint) {
+	w.keyboard(mode)
 }
 
 // Close the window. Not implemented for js.

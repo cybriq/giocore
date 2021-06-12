@@ -152,11 +152,13 @@ var gioView struct {
 	getFontScale       C.jmethodID
 	showTextInput      C.jmethodID
 	hideTextInput      C.jmethodID
+	setInputHint       C.jmethodID
 	postFrameCallback  C.jmethodID
 	setCursor          C.jmethodID
 	setOrientation     C.jmethodID
 	setNavigationColor C.jmethodID
 	setStatusColor     C.jmethodID
+	setFullscreen      C.jmethodID
 }
 
 // ViewEvent is sent whenever the Window's underlying Android view
@@ -281,11 +283,13 @@ func Java_org_gioui_GioView_onCreateView(env *C.JNIEnv, class C.jclass, view C.j
 		m.getFontScale = getMethodID(env, class, "getFontScale", "()F")
 		m.showTextInput = getMethodID(env, class, "showTextInput", "()V")
 		m.hideTextInput = getMethodID(env, class, "hideTextInput", "()V")
+		m.setInputHint = getMethodID(env, class, "setInputHint", "(I)V")
 		m.postFrameCallback = getMethodID(env, class, "postFrameCallback", "()V")
 		m.setCursor = getMethodID(env, class, "setCursor", "(I)V")
 		m.setOrientation = getMethodID(env, class, "setOrientation", "(II)V")
 		m.setNavigationColor = getMethodID(env, class, "setNavigationColor", "(II)V")
 		m.setStatusColor = getMethodID(env, class, "setStatusColor", "(II)V")
+		m.setFullscreen = getMethodID(env, class, "setFullscreen", "(Z)V")
 	})
 	view = C.jni_NewGlobalRef(env, view)
 	wopts := <-mainWindow.out
@@ -296,8 +300,8 @@ func Java_org_gioui_GioView_onCreateView(env *C.JNIEnv, class C.jclass, view C.j
 		}
 		windows[wopts.window] = w
 	}
-	w.callbacks.SetDriver(w)
 	w.view = view
+	w.callbacks.SetDriver(w)
 	handle := C.jlong(view)
 	views[handle] = w
 	w.loadConfig(env, class)
@@ -542,7 +546,7 @@ func Java_org_gioui_GioView_onKeyEvent(env *C.JNIEnv, class C.jclass, handle C.j
 	if n, ok := convertKeyCode(keyCode); ok {
 		w.callbacks.Event(key.Event{Name: n})
 	}
-	if r != 0 {
+	if r != 0 && r != '\n' { // Checking for "\n" to prevent duplication with key.NameEnter (gio#224).
 		w.callbacks.Event(key.EditEvent{Text: string(rune(r))})
 	}
 }
@@ -606,6 +610,28 @@ func (w *window) ShowTextInput(show bool) {
 		} else {
 			callVoidMethod(env, w.view, gioView.hideTextInput)
 		}
+	})
+}
+
+func (w *window) SetInputHint(mode key.InputHint) {
+	// Constants defined at https://developer.android.com/reference/android/text/InputType.
+	const (
+		TYPE_NULL                = 0
+		TYPE_CLASS_NUMBER        = 2
+		TYPE_NUMBER_FLAG_DECIMAL = 8192
+		TYPE_NUMBER_FLAG_SIGNED  = 4096
+	)
+
+	runInJVM(javaVM(), func(env *C.JNIEnv) {
+		var m jvalue
+		switch mode {
+		case key.HintNumeric:
+			m = TYPE_CLASS_NUMBER | TYPE_NUMBER_FLAG_DECIMAL | TYPE_NUMBER_FLAG_SIGNED
+		default:
+			// TYPE_NULL, since TYPE_CLASS_TEXT isn't currently supported (gio#116), so TYPE_NULL is used instead.
+			m = TYPE_NULL
+		}
+		callVoidMethod(env, w.view, gioView.setInputHint, m)
 	})
 }
 
@@ -729,6 +755,9 @@ func (w *window) Option(opts *Options) {
 		if o := opts.StatusColor; o != nil {
 			setStatusColor(env, w.view, *o)
 		}
+		if o := opts.WindowMode; o != nil {
+			setWindowMode(env, w.view, *o)
+		}
 	})
 }
 
@@ -796,6 +825,15 @@ func setNavigationColor(env *C.JNIEnv, view C.jobject, color color.NRGBA) {
 		jvalue(uint32(color.A)<<24|uint32(color.R)<<16|uint32(color.G)<<8|uint32(color.B)),
 		jvalue(int(f32color.LinearFromSRGB(color).Luminance()*255)),
 	)
+}
+
+func setWindowMode(env *C.JNIEnv, view C.jobject, mode WindowMode) {
+	switch mode {
+	case Fullscreen:
+		callVoidMethod(env, view, gioView.setFullscreen, C.JNI_TRUE)
+	default:
+		callVoidMethod(env, view, gioView.setFullscreen, C.JNI_FALSE)
+	}
 }
 
 // Close the window. Not implemented for Android.

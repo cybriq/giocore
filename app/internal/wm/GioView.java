@@ -36,6 +36,7 @@ import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.EditorInfo;
+import android.text.InputType;
 
 import java.io.UnsupportedEncodingException;
 
@@ -47,6 +48,7 @@ public final class GioView extends SurfaceView implements Choreographer.FrameCal
 	private final InputMethodManager imm;
 	private final float scrollXScale;
 	private final float scrollYScale;
+	private int keyboardHint;
 
 	private long nhandle;
 
@@ -144,6 +146,22 @@ public final class GioView extends SurfaceView implements Choreographer.FrameCal
             id = fallback;
         }
         ((Activity) this.getContext()).setRequestedOrientation(id);
+    }
+
+    private void setFullscreen(boolean enabled) {
+        int flags = this.getSystemUiVisibility();
+        if (enabled) {
+           flags |= SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+           flags |= SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+           flags |= SYSTEM_UI_FLAG_FULLSCREEN;
+           flags |= SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+        } else {
+           flags &= ~SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+           flags &= ~SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+           flags &= ~SYSTEM_UI_FLAG_FULLSCREEN;
+           flags &= ~SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+        }
+        this.setSystemUiVisibility(flags);
     }
 
     private enum Bar {
@@ -247,8 +265,18 @@ public final class GioView extends SurfaceView implements Choreographer.FrameCal
 		}
 	}
 
-	@Override public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+	@Override public InputConnection onCreateInputConnection(EditorInfo editor) {
+		editor.inputType = this.keyboardHint;
+		editor.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN | EditorInfo.IME_FLAG_NO_EXTRACT_UI;
 		return new InputConnection(this);
+	}
+
+	void setInputHint(int hint) {
+	    if (hint == this.keyboardHint) {
+	        return;
+	    }
+	    this.keyboardHint = hint;
+	    imm.restartInput(this);
 	}
 
 	void showTextInput() {
