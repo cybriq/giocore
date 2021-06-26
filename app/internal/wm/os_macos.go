@@ -344,10 +344,11 @@ func configFor(scale float32) unit.Metric {
 //export gio_onClose
 func gio_onClose(view C.CFTypeRef) {
 	w := mustView(view)
-	w.displayLink.Close()
 	w.w.Event(ViewEvent{})
 	deleteView(view)
 	w.w.Event(system.DestroyEvent{})
+	w.displayLink.Close()
+	w.displayLink = nil
 	C.CFRelease(w.view)
 	w.view = 0
 	C.CFRelease(w.window)
@@ -395,9 +396,9 @@ func NewWindow(win Callbacks, opts *Options) error {
 			return
 		}
 		errch <- nil
-		win.SetDriver(w)
 		w.w = win
 		w.window = C.gio_createWindow(w.view, nil, 0, 0, 0, 0, 0, 0)
+		win.SetDriver(w)
 		w.Option(opts)
 		if nextTopLeft.x == 0 && nextTopLeft.y == 0 {
 			// cascadeTopLeftFromPoint treats (0, 0) as a no-op,

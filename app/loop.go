@@ -17,6 +17,7 @@ type renderLoop struct {
 	drawing bool
 	err     error
 
+	ctx        wm.Context
 	frames     chan frame
 	results    chan frameResult
 	refresh    chan struct{}
@@ -38,6 +39,7 @@ type frameResult struct {
 
 func newLoop(ctx wm.Context) (*renderLoop, error) {
 	l := &renderLoop{
+		ctx:        ctx,
 		frames:     make(chan frame),
 		results:    make(chan frameResult),
 		refresh:    make(chan struct{}),

@@ -69,6 +69,7 @@ type Context interface {
 	API() gpu.API
 	Present() error
 	MakeCurrent() error
+	Refresh() error
 	Release()
 	Lock()
 	Unlock()
