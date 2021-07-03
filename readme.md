@@ -1,8 +1,7 @@
 This repository is a stripped down version of 
 [Gio](https://github.com/cybriq/giocore) with all optional parts removed and 
 only the core (window, gpu, ops and events) in order to form the back end 
-for a new, yet to be named widget and layout system loosely derived from the 
-layout/widget/material packages formerly found in here.
+for a new widget/app/layout system called [pokaz](https://github.com/cybriq/pokaz).
 
 The library will be updated to incorporate upstream patches from time to 
 time to maintain parity with the latest core updates, but it will not be 
