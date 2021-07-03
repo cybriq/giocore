@@ -1,5 +1,7 @@
+# giocore
+
 This repository is a stripped down version of 
-[Gio](https://github.com/cybriq/giocore) with all optional parts removed and 
+[Gio](https://gioui.org) with all optional parts removed and 
 only the core (window, gpu, ops and events) in order to form the back end 
 for a new widget/app/layout system called [pokaz](https://github.com/cybriq/pokaz).
 
