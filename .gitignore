@@ -1,2 +1,7 @@
 .gradle
 **/android/build
+/.idea/.gitignore
+/.idea/giocore.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
