@@ -12,9 +12,11 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/cybriq/giocore/gpu/internal/driver"
-	"github.com/cybriq/giocore/internal/byteslice"
-	"github.com/cybriq/giocore/internal/f32color"
+	"gioui.org/gpu/internal/driver"
+	"gioui.org/internal/byteslice"
+	"gioui.org/internal/f32color"
+	"gioui.org/shader"
+	"gioui.org/shader/gio"
 )
 
 var dumpImages = flag.Bool("saveimages", false, "save test images")
@@ -36,7 +38,7 @@ func TestSimpleShader(t *testing.T) {
 	b := newDriver(t)
 	sz := image.Point{X: 800, Y: 600}
 	fbo := setupFBO(t, b, sz)
-	p, err := b.NewProgram(shader_simple_vert, shader_simple_frag)
+	p, err := b.NewProgram(gio.Shader_simple_vert, gio.Shader_simple_frag)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +61,7 @@ func TestInputShader(t *testing.T) {
 	b := newDriver(t)
 	sz := image.Point{X: 800, Y: 600}
 	fbo := setupFBO(t, b, sz)
-	p, err := b.NewProgram(shader_input_vert, shader_simple_frag)
+	p, err := b.NewProgram(gio.Shader_input_vert, gio.Shader_simple_frag)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,9 +79,9 @@ func TestInputShader(t *testing.T) {
 	}
 	defer buf.Release()
 	b.BindVertexBuffer(buf, 4*4, 0)
-	layout, err := b.NewInputLayout(shader_input_vert, []driver.InputDesc{
+	layout, err := b.NewInputLayout(gio.Shader_input_vert, []shader.InputDesc{
 		{
-			Type:   driver.DataTypeFloat,
+			Type:   shader.DataTypeFloat,
 			Size:   4,
 			Offset: 0,
 		},
@@ -132,14 +134,13 @@ func setupFBO(t *testing.T, b driver.Device, size image.Point) driver.Framebuffe
 	// are in the sRGB color space.
 	col := f32color.LinearFromSRGB(clearCol)
 	b.Clear(col.Float32())
-	b.ClearDepth(0.0)
 	b.Viewport(0, 0, size.X, size.Y)
 	return fbo
 }
 
 func newFBO(t *testing.T, b driver.Device, size image.Point) driver.Framebuffer {
 	fboTex, err := b.NewTexture(
-		driver.TextureFormatSRGB,
+		driver.TextureFormatSRGBA,
 		size.X, size.Y,
 		driver.FilterNearest, driver.FilterNearest,
 		driver.BufferBindingFramebuffer,
@@ -150,8 +151,7 @@ func newFBO(t *testing.T, b driver.Device, size image.Point) driver.Framebuffer 
 	t.Cleanup(func() {
 		fboTex.Release()
 	})
-	const depthBits = 16
-	fbo, err := b.NewFramebuffer(fboTex, depthBits)
+	fbo, err := b.NewFramebuffer(fboTex)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -174,7 +174,7 @@ func newDriver(t *testing.T) driver.Device {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b.BeginFrame(true, image.Pt(1, 1))
+	b.BeginFrame(nil, true, image.Pt(1, 1))
 	t.Cleanup(func() {
 		b.EndFrame()
 		ctx.ReleaseCurrent()

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Unlicense OR MIT
 
+//go:build (linux && !android && !nox11) || freebsd || openbsd
 // +build linux,!android,!nox11 freebsd openbsd
 
 package wm
@@ -32,10 +33,6 @@ func (c *x11Context) Release() {
 }
 
 func (c *x11Context) Refresh() error {
-	return nil
-}
-
-func (c *x11Context) MakeCurrent() error {
 	c.Context.ReleaseSurface()
 	win, width, height := c.win.window()
 	eglSurf := egl.NativeWindowType(uintptr(win))
@@ -46,9 +43,14 @@ func (c *x11Context) MakeCurrent() error {
 		return err
 	}
 	c.Context.EnableVSync(true)
+	c.Context.ReleaseCurrent()
 	return nil
 }
 
-func (c *x11Context) Lock() {}
+func (c *x11Context) Lock() error {
+	return c.Context.MakeCurrent()
+}
 
-func (c *x11Context) Unlock() {}
+func (c *x11Context) Unlock() {
+	c.Context.ReleaseCurrent()
+}

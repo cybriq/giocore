@@ -1,14 +1,14 @@
-module github.com/cybriq/giocore
+module gioui.org
 
-go 1.14
+go 1.16
 
 require (
-	github.com/akavel/rsrc v0.10.2
-	github.com/chromedp/cdproto v0.0.0-20210508221054-d7cfa85db7d1
-	github.com/chromedp/chromedp v0.7.2
-	golang.org/x/image v0.0.0-20200618115811-c13761719519
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210510120138-977fb7262007
-	golang.org/x/text v0.3.3
-	golang.org/x/tools v0.1.1
+	golang.org/x/exp v0.0.0-20210722180016-6781d3edade3
+	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+)
+
+require (
+	gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2
+	gioui.org/shader v0.0.0-20210816161847-c12352edbd45
 )

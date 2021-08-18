@@ -144,15 +144,25 @@ func (w *Window) validateAndProcess(driver wm.Driver, frameStart time.Time, size
 		}
 		if w.loop == nil && !w.nocontext {
 			var err error
-			w.ctx, err = driver.NewContext()
-			if err != nil {
-				return err
+			if w.ctx == nil {
+				w.driverRun(func(_ wm.Driver) {
+					w.ctx, err = driver.NewContext()
+				})
+				if err != nil {
+					return err
+				}
+				sync = true
 			}
 			w.loop, err = newLoop(w.ctx)
 			if err != nil {
-				w.ctx.Release()
+				w.destroyGPU()
 				return err
 			}
+		}
+		if sync && w.ctx != nil {
+			w.driverRun(func(_ wm.Driver) {
+				w.ctx.Refresh()
+			})
 		}
 		w.processFrame(frameStart, size, frame)
 		if sync && w.loop != nil {
@@ -387,10 +397,6 @@ loop:
 	}
 }
 
-func (c *callbacks) Run(f func()) {
-	c.w.Run(f)
-}
-
 func (w *Window) waitAck() {
 	// Send a dummy event; when it gets through we
 	// know the application has processed the previous event.
@@ -412,13 +418,6 @@ func (w *Window) destroy(err error) {
 			return
 		}
 	}
-}
-
-func (w *Window) refresh() {
-	w.driverRun(func(_ wm.Driver) {
-		w.ctx.Refresh()
-	})
-	w.loop.Refresh()
 }
 
 func (w *Window) destroyGPU() {
@@ -478,9 +477,10 @@ func (w *Window) run(opts *wm.Options) {
 			case system.StageEvent:
 				if w.loop != nil {
 					if e2.Stage < system.StageRunning {
-						w.destroyGPU()
-					} else {
-						w.refresh()
+						if w.loop != nil {
+							w.loop.Release()
+							w.loop = nil
+						}
 					}
 				}
 				w.stage = e2.Stage
@@ -500,11 +500,6 @@ func (w *Window) run(opts *wm.Options) {
 				e2.Frame = w.update
 				e2.Queue = &w.queue
 				w.out <- e2.FrameEvent
-				if w.loop != nil {
-					if e2.Sync {
-						w.refresh()
-					}
-				}
 				frame, gotFrame := w.waitFrame()
 				err := w.validateAndProcess(driver, frameStart, e2.Size, e2.Sync, frame)
 				if gotFrame {

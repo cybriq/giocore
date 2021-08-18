@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Unlicense OR MIT
 
+//go:build darwin && !ios
 // +build darwin,!ios
 
 package wm
@@ -39,16 +40,16 @@ func newContext(w *window) (*context, error) {
 	if ctx == 0 {
 		return nil, errors.New("gl: failed to create NSOpenGLContext")
 	}
-	// [NSOpenGLContext setView] must run on the main thread. Fortunately,
-	// newContext is only called during a [NSView draw] on the main thread.
-	w.w.Run(func() {
-		C.gio_setContextView(ctx, view)
-	})
+	C.gio_setContextView(ctx, view)
 	c := &context{
 		ctx:  ctx,
 		view: view,
 	}
 	return c, nil
+}
+
+func (c *context) RenderTarget() gpu.RenderTarget {
+	return gpu.OpenGLRenderTarget{}
 }
 
 func (c *context) API() gpu.API {
@@ -67,11 +68,14 @@ func (c *context) Present() error {
 	return nil
 }
 
-func (c *context) Lock() {
+func (c *context) Lock() error {
 	C.gio_lockContext(c.ctx)
+	C.gio_makeCurrentContext(c.ctx)
+	return nil
 }
 
 func (c *context) Unlock() {
+	C.gio_clearCurrentContext()
 	C.gio_unlockContext(c.ctx)
 }
 
@@ -79,13 +83,6 @@ func (c *context) Refresh() error {
 	c.Lock()
 	defer c.Unlock()
 	C.gio_updateContext(c.ctx)
-	return nil
-}
-
-func (c *context) MakeCurrent() error {
-	c.Lock()
-	defer c.Unlock()
-	C.gio_makeCurrentContext(c.ctx)
 	return nil
 }
 
