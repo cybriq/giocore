@@ -14,3 +14,10 @@ This repository is synced up to
 [gioui.org](https://git.sr.ht/~eliasnaur/gio) 
 with everything pertaining to the `layout/` and `widget/` folders removed, 
 and the odd thing that somehow depends on these.
+
+Note that the `main` branch of this repository matches the upstream, this 
+repository's default branch is `master` which is the same except omitting 
+the `widget` and `widget/material` packages. The content of these from 
+upstream is being adapted to permit a separate map and render for laying out 
+viewports where the layout is arbitrarily displaced and clipped into another 
+widget.
