@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Unlicense OR MIT
 
+//go:build darwin || linux || freebsd || openbsd
 // +build darwin linux freebsd openbsd
 
 package gl
@@ -560,8 +561,10 @@ func (f *Functions) load(forceES bool) error {
 		libNames = []string{"libGLESv2.dylib"}
 	case runtime.GOOS == "ios":
 		libNames = []string{"/System/Library/Frameworks/OpenGLES.framework/OpenGLES"}
-	default:
+	case runtime.GOOS == "android":
 		libNames = []string{"libGLESv2.so", "libGLESv3.so"}
+	default:
+		libNames = []string{"libGLESv2.so.2"}
 	}
 	for _, lib := range libNames {
 		if h := dlopen(lib); h != nil {
@@ -1100,7 +1103,7 @@ func (f *Functions) LinkProgram(p Program) {
 	C.glLinkProgram(&f.f, C.GLuint(p.V))
 }
 
-func (f *Functions) PixelStorei(pname Enum, param int32) {
+func (f *Functions) PixelStorei(pname Enum, param int) {
 	C.glPixelStorei(&f.f, C.GLenum(pname), C.GLint(param))
 }
 

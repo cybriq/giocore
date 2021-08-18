@@ -6,8 +6,6 @@ package wm
 #include <Foundation/Foundation.h>
 
 __attribute__ ((visibility ("hidden"))) void gio_wakeupMainThread(void);
-__attribute__ ((visibility ("hidden"))) NSUInteger gio_nsstringLength(CFTypeRef str);
-__attribute__ ((visibility ("hidden"))) void gio_nsstringGetCharacters(CFTypeRef str, unichar *chars, NSUInteger loc, NSUInteger length);
 __attribute__ ((visibility ("hidden"))) CFTypeRef gio_createDisplayLink(void);
 __attribute__ ((visibility ("hidden"))) void gio_releaseDisplayLink(CFTypeRef dl);
 __attribute__ ((visibility ("hidden"))) int gio_startDisplayLink(CFTypeRef dl);
@@ -16,7 +14,20 @@ __attribute__ ((visibility ("hidden"))) void gio_setDisplayLinkDisplay(CFTypeRef
 __attribute__ ((visibility ("hidden"))) void gio_hideCursor();
 __attribute__ ((visibility ("hidden"))) void gio_showCursor();
 __attribute__ ((visibility ("hidden"))) void gio_setCursor(NSUInteger curID);
-__attribute__ ((visibility ("hidden"))) bool gio_isMainThread();
+
+static bool isMainThread() {
+	return [NSThread isMainThread];
+}
+
+static NSUInteger nsstringLength(CFTypeRef cstr) {
+	NSString *str = (__bridge NSString *)cstr;
+	return [str length];
+}
+
+static void nsstringGetCharacters(CFTypeRef cstr, unichar *chars, NSUInteger loc, NSUInteger length) {
+	NSString *str = (__bridge NSString *)cstr;
+	[str getCharacters:chars range:NSMakeRange(loc, length)];
+}
 */
 import "C"
 import (
@@ -56,7 +67,7 @@ var mainFuncs = make(chan func(), 1)
 
 // runOnMain runs the function on the main thread.
 func runOnMain(f func()) {
-	if C.gio_isMainThread() {
+	if C.isMainThread() {
 		f()
 		return
 	}
@@ -85,12 +96,12 @@ func nsstringToString(str C.CFTypeRef) string {
 		return ""
 	}
 	defer C.CFRelease(str)
-	n := C.gio_nsstringLength(str)
+	n := C.nsstringLength(str)
 	if n == 0 {
 		return ""
 	}
 	chars := make([]uint16, n)
-	C.gio_nsstringGetCharacters(str, (*C.unichar)(unsafe.Pointer(&chars[0])), 0, n)
+	C.nsstringGetCharacters(str, (*C.unichar)(unsafe.Pointer(&chars[0])), 0, n)
 	utf8 := utf16.Decode(chars)
 	return string(utf8)
 }
@@ -209,17 +220,13 @@ func windowSetCursor(from, to pointer.CursorName) pointer.CursorName {
 	case pointer.CursorGrab:
 		curID = 7
 	case pointer.CursorNone:
-		runOnMain(func() {
-			C.gio_hideCursor()
-		})
+		C.gio_hideCursor()
 		return to
 	}
-	runOnMain(func() {
-		if from == pointer.CursorNone {
-			C.gio_showCursor()
-		}
-		C.gio_setCursor(C.NSUInteger(curID))
-	})
+	if from == pointer.CursorNone {
+		C.gio_showCursor()
+	}
+	C.gio_setCursor(C.NSUInteger(curID))
 	return to
 }
 

@@ -49,7 +49,7 @@ func NewWindow(width, height int) (*Window, error) {
 		}
 		dev.Viewport(0, 0, width, height)
 		fboTex, err := dev.NewTexture(
-			driver.TextureFormatSRGB,
+			driver.TextureFormatSRGBA,
 			width, height,
 			driver.FilterNearest, driver.FilterNearest,
 			driver.BufferBindingFramebuffer,
@@ -57,8 +57,7 @@ func NewWindow(width, height int) (*Window, error) {
 		if err != nil {
 			return nil
 		}
-		const depthBits = 16
-		fbo, err := dev.NewFramebuffer(fboTex, depthBits)
+		fbo, err := dev.NewFramebuffer(fboTex)
 		if err != nil {
 			fboTex.Release()
 			return err
@@ -109,10 +108,9 @@ func (w *Window) Release() {
 // operation list.
 func (w *Window) Frame(frame *op.Ops) error {
 	return contextDo(w.ctx, func() error {
-		w.dev.BindFramebuffer(w.fbo)
 		w.gpu.Clear(color.NRGBA{})
 		w.gpu.Collect(w.size, frame)
-		return w.gpu.Frame()
+		return w.gpu.Frame(driver.RenderTarget(w.fbo))
 	})
 }
 

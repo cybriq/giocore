@@ -14,6 +14,7 @@ import (
 
 	"gioui.org/gpu/internal/driver"
 	"gioui.org/internal/d3d11"
+	"gioui.org/shader"
 )
 
 type Backend struct {
@@ -23,7 +24,6 @@ type Backend struct {
 	// Temporary storage to avoid garbage.
 	clearColor [4]float32
 	viewport   d3d11.VIEWPORT
-	depthState depthState
 	blendState blendState
 
 	// Current program.
@@ -37,7 +37,6 @@ type Backend struct {
 	floatFormat uint32
 
 	// cached state objects.
-	depthStates map[depthState]*d3d11.DepthStencilState
 	blendStates map[blendState]*d3d11.BlendState
 }
 
@@ -45,12 +44,6 @@ type blendState struct {
 	enable  bool
 	sfactor driver.BlendFactor
 	dfactor driver.BlendFactor
-}
-
-type depthState struct {
-	enable bool
-	mask   bool
-	fn     driver.DepthFunc
 }
 
 type Texture struct {
@@ -83,7 +76,6 @@ type Framebuffer struct {
 	format       uint32
 	resource     *d3d11.Resource
 	renderTarget *d3d11.RenderTargetView
-	depthView    *d3d11.DepthStencilView
 	foreign      bool
 }
 
@@ -128,8 +120,8 @@ func newDirect3D11Device(api driver.Direct3D11) (driver.Device, error) {
 		ctx: dev.GetImmediateContext(),
 		caps: driver.Caps{
 			MaxTextureSize: 2048, // 9.1 maximum
+			Features:       driver.FeatureSRGB,
 		},
-		depthStates: make(map[depthState]*d3d11.DepthStencilState),
 		blendStates: make(map[blendState]*d3d11.BlendState),
 	}
 	featLvl := dev.GetFeatureLevel()
@@ -148,13 +140,10 @@ func newDirect3D11Device(api driver.Direct3D11) (driver.Device, error) {
 		b.floatFormat = fmt
 		b.caps.Features |= driver.FeatureFloatRenderTargets
 	}
-	// Enable depth mask to match OpenGL.
-	b.depthState.mask = true
 	// Disable backface culling to match OpenGL.
 	state, err := dev.CreateRasterizerState(&d3d11.RASTERIZER_DESC{
-		CullMode:        d3d11.CULL_NONE,
-		FillMode:        d3d11.FILL_SOLID,
-		DepthClipEnable: 1,
+		CullMode: d3d11.CULL_NONE,
+		FillMode: d3d11.FILL_SOLID,
 	})
 	if err != nil {
 		return nil, err
@@ -164,16 +153,26 @@ func newDirect3D11Device(api driver.Direct3D11) (driver.Device, error) {
 	return b, nil
 }
 
-func (b *Backend) BeginFrame(clear bool, viewport image.Point) driver.Framebuffer {
-	renderTarget, depthView := b.ctx.OMGetRenderTargets()
-	// Assume someone else is holding on to the render targets.
-	if renderTarget != nil {
-		d3d11.IUnknownRelease(unsafe.Pointer(renderTarget), renderTarget.Vtbl.Release)
+func (b *Backend) BeginFrame(target driver.RenderTarget, clear bool, viewport image.Point) driver.Framebuffer {
+	var (
+		renderTarget *d3d11.RenderTargetView
+	)
+	if target != nil {
+		switch t := target.(type) {
+		case driver.Direct3D11RenderTarget:
+			renderTarget = (*d3d11.RenderTargetView)(t.RenderTarget)
+		case *Framebuffer:
+			renderTarget = t.renderTarget
+		default:
+			panic(fmt.Errorf("opengl: invalid render target type: %T", target))
+		}
 	}
-	if depthView != nil {
-		d3d11.IUnknownRelease(unsafe.Pointer(depthView), depthView.Vtbl.Release)
-	}
-	return &Framebuffer{ctx: b.ctx, dev: b.dev, renderTarget: renderTarget, depthView: depthView, foreign: true}
+	b.ctx.OMSetRenderTargets(renderTarget, nil)
+	return &Framebuffer{ctx: b.ctx, dev: b.dev, renderTarget: renderTarget, foreign: true}
+}
+
+func (b *Backend) BlitFramebuffer(dst, src driver.Framebuffer, srect, drect image.Rectangle) {
+	panic("not implemented")
 }
 
 func (b *Backend) EndFrame() {
@@ -192,9 +191,6 @@ func (b *Backend) IsTimeContinuous() bool {
 }
 
 func (b *Backend) Release() {
-	for _, state := range b.depthStates {
-		d3d11.IUnknownRelease(unsafe.Pointer(state), state.Vtbl.Release)
-	}
 	for _, state := range b.blendStates {
 		d3d11.IUnknownRelease(unsafe.Pointer(state), state.Vtbl.Release)
 	}
@@ -207,7 +203,7 @@ func (b *Backend) NewTexture(format driver.TextureFormat, width, height int, min
 	switch format {
 	case driver.TextureFormatFloat:
 		d3dfmt = b.floatFormat
-	case driver.TextureFormatSRGB:
+	case driver.TextureFormatSRGBA:
 		d3dfmt = d3d11.DXGI_FORMAT_R8G8B8A8_UNORM_SRGB
 	default:
 		return nil, fmt.Errorf("unsupported texture format %d", format)
@@ -278,7 +274,7 @@ func (b *Backend) NewTexture(format driver.TextureFormat, width, height int, min
 	return &Texture{backend: b, format: d3dfmt, tex: tex, sampler: sampler, resView: resView, bindings: bindings, width: width, height: height}, nil
 }
 
-func (b *Backend) NewFramebuffer(tex driver.Texture, depthBits int) (driver.Framebuffer, error) {
+func (b *Backend) NewFramebuffer(tex driver.Texture) (driver.Framebuffer, error) {
 	d3dtex := tex.(*Texture)
 	if d3dtex.bindings&driver.BufferBindingFramebuffer == 0 {
 		return nil, errors.New("the texture was created without BufferBindingFramebuffer binding")
@@ -289,18 +285,10 @@ func (b *Backend) NewFramebuffer(tex driver.Texture, depthBits int) (driver.Fram
 		return nil, err
 	}
 	fbo := &Framebuffer{ctx: b.ctx, dev: b.dev, format: d3dtex.format, resource: resource, renderTarget: renderTarget}
-	if depthBits > 0 {
-		depthView, err := d3d11.CreateDepthView(b.dev, d3dtex.width, d3dtex.height, depthBits)
-		if err != nil {
-			d3d11.IUnknownRelease(unsafe.Pointer(renderTarget), renderTarget.Vtbl.Release)
-			return nil, err
-		}
-		fbo.depthView = depthView
-	}
 	return fbo, nil
 }
 
-func (b *Backend) NewInputLayout(vertexShader driver.ShaderSources, layout []driver.InputDesc) (driver.InputLayout, error) {
+func (b *Backend) NewInputLayout(vertexShader shader.Sources, layout []shader.InputDesc) (driver.InputLayout, error) {
 	if len(vertexShader.Inputs) != len(layout) {
 		return nil, fmt.Errorf("NewInputLayout: got %d inputs, expected %d", len(layout), len(vertexShader.Inputs))
 	}
@@ -313,7 +301,7 @@ func (b *Backend) NewInputLayout(vertexShader driver.ShaderSources, layout []dri
 		}
 		var format uint32
 		switch l.Type {
-		case driver.DataTypeFloat:
+		case shader.DataTypeFloat:
 			switch l.Size {
 			case 1:
 				format = d3d11.DXGI_FORMAT_R32_FLOAT
@@ -326,7 +314,7 @@ func (b *Backend) NewInputLayout(vertexShader driver.ShaderSources, layout []dri
 			default:
 				panic("unsupported data size")
 			}
-		case driver.DataTypeShort:
+		case shader.DataTypeShort:
 			switch l.Size {
 			case 1:
 				format = d3d11.DXGI_FORMAT_R16_SINT
@@ -345,7 +333,7 @@ func (b *Backend) NewInputLayout(vertexShader driver.ShaderSources, layout []dri
 			AlignedByteOffset: uint32(l.Offset),
 		}
 	}
-	l, err := b.dev.CreateInputLayout(descs, []byte(vertexShader.HLSL))
+	l, err := b.dev.CreateInputLayout(descs, []byte(vertexShader.DXBC))
 	if err != nil {
 		return nil, err
 	}
@@ -393,16 +381,16 @@ func (b *Backend) NewImmutableBuffer(typ driver.BufferBinding, data []byte) (dri
 	return &Buffer{backend: b, buf: buf, bind: bind, immutable: true}, nil
 }
 
-func (b *Backend) NewComputeProgram(shader driver.ShaderSources) (driver.Program, error) {
+func (b *Backend) NewComputeProgram(shader shader.Sources) (driver.Program, error) {
 	panic("not implemented")
 }
 
-func (b *Backend) NewProgram(vertexShader, fragmentShader driver.ShaderSources) (driver.Program, error) {
-	vs, err := b.dev.CreateVertexShader([]byte(vertexShader.HLSL))
+func (b *Backend) NewProgram(vertexShader, fragmentShader shader.Sources) (driver.Program, error) {
+	vs, err := b.dev.CreateVertexShader([]byte(vertexShader.DXBC))
 	if err != nil {
 		return nil, err
 	}
-	ps, err := b.dev.CreatePixelShader([]byte(fragmentShader.HLSL))
+	ps, err := b.dev.CreatePixelShader([]byte(fragmentShader.DXBC))
 	if err != nil {
 		return nil, err
 	}
@@ -415,12 +403,6 @@ func (b *Backend) NewProgram(vertexShader, fragmentShader driver.ShaderSources) 
 func (b *Backend) Clear(colr, colg, colb, cola float32) {
 	b.clearColor = [4]float32{colr, colg, colb, cola}
 	b.ctx.ClearRenderTargetView(b.fbo.renderTarget, &b.clearColor)
-}
-
-func (b *Backend) ClearDepth(depth float32) {
-	if b.fbo.depthView != nil {
-		b.ctx.ClearDepthStencilView(b.fbo.depthView, d3d11.CLEAR_DEPTH|d3d11.CLEAR_STENCIL, depth, 0)
-	}
 }
 
 func (b *Backend) Viewport(x, y, width, height int) {
@@ -467,32 +449,6 @@ func (b *Backend) prepareDraw(mode driver.DrawMode) {
 	}
 	b.ctx.IASetPrimitiveTopology(topology)
 
-	depthState, ok := b.depthStates[b.depthState]
-	if !ok {
-		var desc d3d11.DEPTH_STENCIL_DESC
-		if b.depthState.enable {
-			desc.DepthEnable = 1
-		}
-		if b.depthState.mask {
-			desc.DepthWriteMask = d3d11.DEPTH_WRITE_MASK_ALL
-		}
-		switch b.depthState.fn {
-		case driver.DepthFuncGreater:
-			desc.DepthFunc = d3d11.COMPARISON_GREATER
-		case driver.DepthFuncGreaterEqual:
-			desc.DepthFunc = d3d11.COMPARISON_GREATER_EQUAL
-		default:
-			panic("unsupported depth func")
-		}
-		var err error
-		depthState, err = b.dev.CreateDepthStencilState(&desc)
-		if err != nil {
-			panic(err)
-		}
-		b.depthStates[b.depthState] = depthState
-	}
-	b.ctx.OMSetDepthStencilState(depthState, 0)
-
 	blendState, ok := b.blendStates[b.blendState]
 	if !ok {
 		var desc d3d11.BLEND_DESC
@@ -519,20 +475,8 @@ func (b *Backend) prepareDraw(mode driver.DrawMode) {
 	b.ctx.OMSetBlendState(blendState, nil, 0xffffffff)
 }
 
-func (b *Backend) DepthFunc(f driver.DepthFunc) {
-	b.depthState.fn = f
-}
-
 func (b *Backend) SetBlend(enable bool) {
 	b.blendState.enable = enable
-}
-
-func (b *Backend) SetDepthTest(enable bool) {
-	b.depthState.enable = enable
-}
-
-func (b *Backend) DepthMask(mask bool) {
-	b.depthState.mask = mask
 }
 
 func (b *Backend) BlendFunc(sfactor, dfactor driver.BlendFactor) {
@@ -552,8 +496,10 @@ func (b *Backend) DispatchCompute(x, y, z int) {
 	panic("not implemented")
 }
 
-func (t *Texture) Upload(offset, size image.Point, pixels []byte) {
-	stride := size.X * 4
+func (t *Texture) Upload(offset, size image.Point, pixels []byte, stride int) {
+	if stride == 0 {
+		stride = size.X * 4
+	}
 	dst := &d3d11.BOX{
 		Left:   uint32(offset.X),
 		Top:    uint32(offset.Y),
@@ -686,7 +632,7 @@ func (f *Framebuffer) ReadPixels(src image.Rectangle, pixels []byte) error {
 
 func (b *Backend) BindFramebuffer(fbo driver.Framebuffer) {
 	b.fbo = fbo.(*Framebuffer)
-	b.ctx.OMSetRenderTargets(b.fbo.renderTarget, b.fbo.depthView)
+	b.ctx.OMSetRenderTargets(b.fbo.renderTarget, nil)
 }
 
 func (f *Framebuffer) Invalidate() {
@@ -700,11 +646,9 @@ func (f *Framebuffer) Release() {
 		d3d11.IUnknownRelease(unsafe.Pointer(f.renderTarget), f.renderTarget.Vtbl.Release)
 		f.renderTarget = nil
 	}
-	if f.depthView != nil {
-		d3d11.IUnknownRelease(unsafe.Pointer(f.depthView), f.depthView.Vtbl.Release)
-		f.depthView = nil
-	}
 }
+
+func (f *Framebuffer) ImplementsRenderTarget() {}
 
 func (b *Backend) BindInputLayout(layout driver.InputLayout) {
 	b.ctx.IASetInputLayout(layout.(*InputLayout).layout)

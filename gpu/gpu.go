@@ -16,6 +16,7 @@ import (
 	"math"
 	"os"
 	"reflect"
+	"runtime/debug"
 	"time"
 	"unsafe"
 
@@ -30,6 +31,8 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
+	"gioui.org/shader"
+	"gioui.org/shader/gio"
 
 	// Register backends.
 	_ "gioui.org/gpu/internal/d3d11"
@@ -43,10 +46,10 @@ type GPU interface {
 	Clear(color color.NRGBA)
 	// Collect the graphics operations from frame, given the viewport.
 	Collect(viewport image.Point, frame *op.Ops)
-	// Frame clears the color buffer and draws the collected operations.
-	Frame() error
+	// Frame draws the collected operations to target.
+	Frame(target RenderTarget) error
 	// Profile returns the last available profiling information. Profiling
-	// information is requested when Collect sees a ProfileOp, and the result
+	// information is requested when Collect sees an io/profile.Op, and the result
 	// is available through Profile at some later time.
 	Profile() string
 }
@@ -54,13 +57,13 @@ type GPU interface {
 type gpu struct {
 	cache *resourceCache
 
-	profile                                           string
-	timers                                            *timers
-	frameStart                                        time.Time
-	zopsTimer, stencilTimer, coverTimer, cleanupTimer *timer
-	drawOps                                           drawOps
-	ctx                                               driver.Device
-	renderer                                          *renderer
+	profile                                string
+	timers                                 *timers
+	frameStart                             time.Time
+	stencilTimer, coverTimer, cleanupTimer *timer
+	drawOps                                drawOps
+	ctx                                    driver.Device
+	renderer                               *renderer
 }
 
 type renderer struct {
@@ -80,21 +83,14 @@ type drawOps struct {
 	viewport   image.Point
 	clear      bool
 	clearColor f32color.RGBA
-	// allImageOps is the combined list of imageOps and
-	// zimageOps, in drawing order.
-	allImageOps []imageOp
-	imageOps    []imageOp
+	imageOps   []imageOp
 	// zimageOps are the rectangle clipped opaque images
 	// that can use fast front-to-back rendering with z-test
 	// and no blending.
-	zimageOps   []imageOp
 	pathOps     []*pathOp
 	pathOpCache []pathOp
 	qs          quadSplitter
 	pathCache   *opCache
-	// hack for the compute renderer to access
-	// converted path data.
-	compute bool
 }
 
 type drawState struct {
@@ -122,25 +118,24 @@ type pathOp struct {
 	// later clip rectangles.
 	clip      image.Rectangle
 	bounds    f32.Rectangle
-	pathKey   ops.Key
+	pathKey   opKey
 	path      bool
 	pathVerts []byte
 	parent    *pathOp
 	place     placement
-
-	// For compute
-	trans  f32.Affine2D
-	stroke clip.StrokeStyle
 }
 
 type imageOp struct {
-	z        float32
 	path     *pathOp
 	clip     image.Rectangle
 	material material
 	clipType clipType
 	place    placement
 }
+
+// shaderModuleVersion is the exact version of gioui.org/shader expected by
+// this package. Shader programs are not backwards or forwards compatible.
+const shaderModuleVersion = "v0.0.0-20210816161847-c12352edbd45"
 
 func decodeStrokeOp(data []byte) clip.StrokeStyle {
 	_ = data[4]
@@ -154,8 +149,13 @@ func decodeStrokeOp(data []byte) clip.StrokeStyle {
 }
 
 type quadsOp struct {
-	key ops.Key
+	key opKey
 	aux []byte
+}
+
+type opKey struct {
+	sx, hx, sy, hy float32
+	ops.Key
 }
 
 type material struct {
@@ -169,9 +169,6 @@ type material struct {
 	// For materialTypeTexture.
 	data    imageOpData
 	uvTrans f32.Affine2D
-
-	// For the compute backend.
-	trans f32.Affine2D
 }
 
 // clipOp is the shadow of clip.Op.
@@ -361,22 +358,22 @@ const (
 )
 
 func New(api API) (GPU, error) {
+	if err := verifyShaderModule(); err != nil {
+		return nil, err
+	}
 	d, err := driver.NewDevice(api)
 	if err != nil {
 		return nil, err
 	}
-	d.BeginFrame(false, image.Point{})
+	d.BeginFrame(nil, false, image.Point{})
 	defer d.EndFrame()
 	forceCompute := os.Getenv("GIORENDERER") == "forcecompute"
 	feats := d.Caps().Features
 	switch {
-	case !forceCompute && feats.Has(driver.FeatureFloatRenderTargets):
+	case !forceCompute && feats.Has(driver.FeatureFloatRenderTargets) && feats.Has(driver.FeatureSRGB):
 		return newGPU(d)
-	case feats.Has(driver.FeatureCompute):
-		return newCompute(d)
-	default:
-		return nil, errors.New("gpu: no support for float render targets nor compute")
 	}
+	return newCompute(d)
 }
 
 func newGPU(ctx driver.Device) (*gpu, error) {
@@ -388,6 +385,23 @@ func newGPU(ctx driver.Device) (*gpu, error) {
 		return nil, err
 	}
 	return g, nil
+}
+
+func verifyShaderModule() error {
+	mod, ok := debug.ReadBuildInfo()
+	if !ok {
+		// No module support; hopefully the version matches.
+		return nil
+	}
+	for _, m := range mod.Deps {
+		if m.Path == "gioui.org/shader" {
+			if got := m.Version; got != shaderModuleVersion {
+				return fmt.Errorf("gpu: module gioui.org/shader is version %q, expected %q", got, shaderModuleVersion)
+			}
+			return nil
+		}
+	}
+	return errors.New("gpu: module version for gioui.org/shader not found")
 }
 
 func (g *gpu) init(ctx driver.Device) error {
@@ -406,7 +420,7 @@ func (g *gpu) Release() {
 	g.drawOps.pathCache.release()
 	g.cache.release()
 	if g.timers != nil {
-		g.timers.release()
+		g.timers.Release()
 	}
 	g.ctx.Release()
 }
@@ -419,35 +433,25 @@ func (g *gpu) Collect(viewport image.Point, frameOps *op.Ops) {
 	g.frameStart = time.Now()
 	if g.drawOps.profile && g.timers == nil && g.ctx.Caps().Features.Has(driver.FeatureTimers) {
 		g.timers = newTimers(g.ctx)
-		g.zopsTimer = g.timers.newTimer()
 		g.stencilTimer = g.timers.newTimer()
 		g.coverTimer = g.timers.newTimer()
 		g.cleanupTimer = g.timers.newTimer()
 	}
 }
 
-func (g *gpu) Frame() error {
+func (g *gpu) Frame(target RenderTarget) error {
 	viewport := g.renderer.blitter.viewport
-	defFBO := g.ctx.BeginFrame(g.drawOps.clear, viewport)
+	defFBO := g.ctx.BeginFrame(target, g.drawOps.clear, viewport)
 	defer g.ctx.EndFrame()
 	for _, img := range g.drawOps.imageOps {
 		expandPathOp(img.path, img.clip)
 	}
-	if g.drawOps.profile {
-		g.zopsTimer.begin()
-	}
 	g.ctx.BindFramebuffer(defFBO)
-	g.ctx.DepthFunc(driver.DepthFuncGreater)
-	// Note that Clear must be before ClearDepth if nothing else is rendered
-	// (len(zimageOps) == 0). If not, the Fairphone 2 will corrupt the depth buffer.
 	if g.drawOps.clear {
 		g.drawOps.clear = false
 		g.ctx.Clear(g.drawOps.clearColor.Float32())
 	}
-	g.ctx.ClearDepth(0.0)
 	g.ctx.Viewport(0, 0, viewport.X, viewport.Y)
-	g.renderer.drawZOps(g.cache, g.drawOps.zimageOps)
-	g.zopsTimer.end()
 	g.stencilTimer.begin()
 	g.ctx.SetBlend(true)
 	g.renderer.packStencils(&g.drawOps.pathOps)
@@ -468,13 +472,13 @@ func (g *gpu) Frame() error {
 	g.drawOps.pathCache.frame()
 	g.cleanupTimer.end()
 	if g.drawOps.profile && g.timers.ready() {
-		zt, st, covt, cleant := g.zopsTimer.Elapsed, g.stencilTimer.Elapsed, g.coverTimer.Elapsed, g.cleanupTimer.Elapsed
-		ft := zt + st + covt + cleant
+		st, covt, cleant := g.stencilTimer.Elapsed, g.coverTimer.Elapsed, g.cleanupTimer.Elapsed
+		ft := st + covt + cleant
 		q := 100 * time.Microsecond
-		zt, st, covt = zt.Round(q), st.Round(q), covt.Round(q)
+		st, covt = st.Round(q), covt.Round(q)
 		frameDur := time.Since(g.frameStart).Round(q)
 		ft = ft.Round(q)
-		g.profile = fmt.Sprintf("draw:%7s gpu:%7s zt:%7s st:%7s cov:%7s", frameDur, ft, zt, st, covt)
+		g.profile = fmt.Sprintf("draw:%7s gpu:%7s st:%7s cov:%7s", frameDur, ft, st, covt)
 	}
 	return nil
 }
@@ -496,7 +500,7 @@ func (r *renderer) texHandle(cache *resourceCache, data imageOpData) driver.Text
 	if tex.tex != nil {
 		return tex.tex
 	}
-	handle, err := r.ctx.NewTexture(driver.TextureFormatSRGB, data.src.Bounds().Dx(), data.src.Bounds().Dy(), driver.FilterLinear, driver.FilterLinear, driver.BufferBindingTexture)
+	handle, err := r.ctx.NewTexture(driver.TextureFormatSRGBA, data.src.Bounds().Dx(), data.src.Bounds().Dy(), driver.FilterLinear, driver.FilterLinear, driver.BufferBindingTexture)
 	if err != nil {
 		panic(err)
 	}
@@ -554,7 +558,7 @@ func newBlitter(ctx driver.Device) *blitter {
 	b.colUniforms = new(blitColUniforms)
 	b.texUniforms = new(blitTexUniforms)
 	b.linearGradientUniforms = new(blitLinearGradientUniforms)
-	prog, layout, err := createColorPrograms(ctx, shader_blit_vert, shader_blit_frag,
+	prog, layout, err := createColorPrograms(ctx, gio.Shader_blit_vert, gio.Shader_blit_frag,
 		[3]interface{}{&b.colUniforms.vert, &b.linearGradientUniforms.vert, &b.texUniforms.vert},
 		[3]interface{}{&b.colUniforms.frag, &b.linearGradientUniforms.frag, nil},
 	)
@@ -574,7 +578,7 @@ func (b *blitter) release() {
 	b.layout.Release()
 }
 
-func createColorPrograms(b driver.Device, vsSrc driver.ShaderSources, fsSrc [3]driver.ShaderSources, vertUniforms, fragUniforms [3]interface{}) ([3]*program, driver.InputLayout, error) {
+func createColorPrograms(b driver.Device, vsSrc shader.Sources, fsSrc [3]shader.Sources, vertUniforms, fragUniforms [3]interface{}) ([3]*program, driver.InputLayout, error) {
 	var progs [3]*program
 	{
 		prog, err := b.NewProgram(vsSrc, fsSrc[materialTexture])
@@ -627,9 +631,9 @@ func createColorPrograms(b driver.Device, vsSrc driver.ShaderSources, fsSrc [3]d
 		}
 		progs[materialLinearGradient] = newProgram(prog, vertBuffer, fragBuffer)
 	}
-	layout, err := b.NewInputLayout(vsSrc, []driver.InputDesc{
-		{Type: driver.DataTypeFloat, Size: 2, Offset: 0},
-		{Type: driver.DataTypeFloat, Size: 2, Offset: 4 * 2},
+	layout, err := b.NewInputLayout(vsSrc, []shader.InputDesc{
+		{Type: shader.DataTypeFloat, Size: 2, Offset: 0},
+		{Type: shader.DataTypeFloat, Size: 2, Offset: 4 * 2},
 	})
 	if err != nil {
 		progs[materialTexture].Release()
@@ -789,8 +793,6 @@ func (d *drawOps) reset(cache *resourceCache, viewport image.Point) {
 	d.cache = cache
 	d.viewport = viewport
 	d.imageOps = d.imageOps[:0]
-	d.allImageOps = d.allImageOps[:0]
-	d.zimageOps = d.zimageOps[:0]
 	d.pathOps = d.pathOps[:0]
 	d.pathOpCache = d.pathOpCache[:0]
 	d.vertCache = d.vertCache[:0]
@@ -810,14 +812,9 @@ func (d *drawOps) collect(ctx driver.Device, cache *resourceCache, root *op.Ops,
 	for _, p := range d.pathOps {
 		if v, exists := d.pathCache.get(p.pathKey); !exists || v.data.data == nil {
 			data := buildPath(ctx, p.pathVerts)
-			var computePath encoder
-			if d.compute {
-				computePath = encodePath(p.pathVerts)
-			}
 			d.pathCache.put(p.pathKey, opCacheValue{
-				data:        data,
-				bounds:      p.bounds,
-				computePath: computePath,
+				data:   data,
+				bounds: p.bounds,
 			})
 		}
 		p.pathVerts = nil
@@ -829,14 +826,12 @@ func (d *drawOps) newPathOp() *pathOp {
 	return &d.pathOpCache[len(d.pathOpCache)-1]
 }
 
-func (d *drawOps) addClipPath(state *drawState, aux []byte, auxKey ops.Key, bounds f32.Rectangle, off f32.Point, tr f32.Affine2D, stroke clip.StrokeStyle) {
+func (d *drawOps) addClipPath(state *drawState, aux []byte, auxKey opKey, bounds f32.Rectangle, off f32.Point) {
 	npath := d.newPathOp()
 	*npath = pathOp{
 		parent: state.cpath,
 		bounds: bounds,
 		off:    off,
-		trans:  tr,
-		stroke: stroke,
 	}
 	state.cpath = npath
 	if len(aux) > 0 {
@@ -848,7 +843,7 @@ func (d *drawOps) addClipPath(state *drawState, aux []byte, auxKey ops.Key, boun
 	}
 }
 
-// split a transform into two parts, one which is pur offset and the
+// split a transform into two parts, one which is pure offset and the
 // other representing the scaling, shearing and rotation part
 func splitTransform(t f32.Affine2D) (srs f32.Affine2D, offset f32.Point) {
 	sx, hx, ox, hy, sy, oy := t.Elems()
@@ -864,11 +859,19 @@ func (d *drawOps) save(id int, state drawState) {
 	d.states[id] = state
 }
 
+func (k opKey) SetTransform(t f32.Affine2D) opKey {
+	sx, hx, _, hy, sy, _ := t.Elems()
+	k.sx = sx
+	k.hx = hx
+	k.hy = hy
+	k.sy = sy
+	return k
+}
+
 func (d *drawOps) collectOps(r *ops.Reader, state drawState) {
 	var (
 		quads quadsOp
 		str   clip.StrokeStyle
-		z     int
 	)
 	d.save(opconst.InitialStateID, state)
 loop:
@@ -889,7 +892,7 @@ loop:
 				break loop
 			}
 			quads.aux = encOp.Data[opconst.TypeAuxLen:]
-			quads.key = encOp.Key
+			quads.key = opKey{Key: encOp.Key}
 
 		case opconst.TypeClip:
 			var op clipOp
@@ -910,20 +913,18 @@ loop:
 						quads.aux, trans, op.outline, str,
 					)
 					op.bounds = bounds
-					if !d.compute {
-						quads.aux = pathData
-					}
+					quads.aux = pathData
 					// add it to the cache, without GPU data, so the transform can be
 					// reused.
 					d.pathCache.put(quads.key, opCacheValue{bounds: op.bounds})
 				}
 			} else {
 				quads.aux, op.bounds, _ = d.boundsForTransformedRect(bounds, trans)
-				quads.key = encOp.Key
-				quads.key.SetTransform(trans)
+				quads.key = opKey{Key: encOp.Key}
+				quads.key.SetTransform(trans) // TODO: This call has no effect.
 			}
 			state.clip = state.clip.Intersect(op.bounds.Add(off))
-			d.addClipPath(&state, quads.aux, quads.key, op.bounds, off, state.t, str)
+			d.addClipPath(&state, quads.aux, quads.key, op.bounds, off)
 			quads = quadsOp{}
 			str = clip.StrokeStyle{}
 
@@ -962,46 +963,29 @@ loop:
 			if clipData != nil {
 				// The paint operation is sheared or rotated, add a clip path representing
 				// this transformed rectangle.
-				encOp.Key.SetTransform(trans)
-				d.addClipPath(&state, clipData, encOp.Key, bnd, off, state.t, clip.StrokeStyle{})
+				k := opKey{Key: encOp.Key}
+				k.SetTransform(trans) // TODO: This call has no effect.
+				d.addClipPath(&state, clipData, k, bnd, off)
 			}
 
 			bounds := boundRectF(cl)
-			mat := state.materialFor(bnd, off, partialTrans, bounds, state.t)
+			mat := state.materialFor(bnd, off, partialTrans, bounds)
 
 			if bounds.Min == (image.Point{}) && bounds.Max == d.viewport && state.rect && mat.opaque && (mat.material == materialColor) {
 				// The image is a uniform opaque color and takes up the whole screen.
 				// Scrap images up to and including this image and set clear color.
-				d.allImageOps = d.allImageOps[:0]
-				d.zimageOps = d.zimageOps[:0]
 				d.imageOps = d.imageOps[:0]
-				z = 0
 				d.clearColor = mat.color.Opaque()
 				d.clear = true
 				continue
 			}
-			z++
-			if z != int(uint16(z)) {
-				// TODO(eliasnaur) gioui.org/issue/127.
-				panic("more than 65k paint objects not supported")
-			}
-			// Assume 16-bit depth buffer.
-			const zdepth = 1 << 16
-			// Convert z to window-space, assuming depth range [0;1].
-			zf := float32(z)*2/zdepth - 1.0
 			img := imageOp{
-				z:        zf,
 				path:     state.cpath,
 				clip:     bounds,
 				material: mat,
 			}
 
-			d.allImageOps = append(d.allImageOps, img)
-			if state.rect && img.material.opaque {
-				d.zimageOps = append(d.zimageOps, img)
-			} else {
-				d.imageOps = append(d.imageOps, img)
-			}
+			d.imageOps = append(d.imageOps, img)
 			if clipData != nil {
 				// we added a clip path that should not remain
 				state.cpath = state.cpath.parent
@@ -1034,7 +1018,7 @@ func expandPathOp(p *pathOp, clip image.Rectangle) {
 	}
 }
 
-func (d *drawState) materialFor(rect f32.Rectangle, off f32.Point, partTrans f32.Affine2D, clip image.Rectangle, trans f32.Affine2D) material {
+func (d *drawState) materialFor(rect f32.Rectangle, off f32.Point, partTrans f32.Affine2D, clip image.Rectangle) material {
 	var m material
 	switch d.matType {
 	case materialColor:
@@ -1069,34 +1053,12 @@ func (d *drawState) materialFor(rect f32.Rectangle, off f32.Point, partTrans f32
 		sr.Max.Y -= float32(dr.Max.Y-clip.Max.Y) * sdy / dy
 		uvScale, uvOffset := texSpaceTransform(sr, sz)
 		m.uvTrans = partTrans.Mul(f32.Affine2D{}.Scale(f32.Point{}, uvScale).Offset(uvOffset))
-		m.trans = trans
 		m.data = d.image
 	}
 	return m
 }
 
-func (r *renderer) drawZOps(cache *resourceCache, ops []imageOp) {
-	r.ctx.SetDepthTest(true)
-	r.ctx.BindVertexBuffer(r.blitter.quadVerts, 4*4, 0)
-	r.ctx.BindInputLayout(r.blitter.layout)
-	// Render front to back.
-	for i := len(ops) - 1; i >= 0; i-- {
-		img := ops[i]
-		m := img.material
-		switch m.material {
-		case materialTexture:
-			r.ctx.BindTexture(0, r.texHandle(cache, m.data))
-		}
-		drc := img.clip
-		scale, off := clipSpaceTransform(drc, r.blitter.viewport)
-		r.blitter.blit(img.z, m.material, m.color, m.color1, m.color2, scale, off, m.uvTrans)
-	}
-	r.ctx.SetDepthTest(false)
-}
-
 func (r *renderer) drawOps(cache *resourceCache, ops []imageOp) {
-	r.ctx.SetDepthTest(true)
-	r.ctx.DepthMask(false)
 	r.ctx.BlendFunc(driver.BlendFactorOne, driver.BlendFactorOneMinusSrcAlpha)
 	r.ctx.BindVertexBuffer(r.blitter.quadVerts, 4*4, 0)
 	r.ctx.BindInputLayout(r.pather.coverer.layout)
@@ -1113,7 +1075,7 @@ func (r *renderer) drawOps(cache *resourceCache, ops []imageOp) {
 		var fbo stencilFBO
 		switch img.clipType {
 		case clipTypeNone:
-			r.blitter.blit(img.z, m.material, m.color, m.color1, m.color2, scale, off, m.uvTrans)
+			r.blitter.blit(m.material, m.color, m.color1, m.color2, scale, off, m.uvTrans)
 			continue
 		case clipTypePath:
 			fbo = r.pather.stenciler.cover(img.place.Idx)
@@ -1129,13 +1091,11 @@ func (r *renderer) drawOps(cache *resourceCache, ops []imageOp) {
 			Max: img.place.Pos.Add(drc.Size()),
 		}
 		coverScale, coverOff := texSpaceTransform(layout.FRect(uv), fbo.size)
-		r.pather.cover(img.z, m.material, m.color, m.color1, m.color2, scale, off, m.uvTrans, coverScale, coverOff)
+		r.pather.cover(m.material, m.color, m.color1, m.color2, scale, off, m.uvTrans, coverScale, coverOff)
 	}
-	r.ctx.DepthMask(true)
-	r.ctx.SetDepthTest(false)
 }
 
-func (b *blitter) blit(z float32, mat materialType, col f32color.RGBA, col1, col2 f32color.RGBA, scale, off f32.Point, uvTrans f32.Affine2D) {
+func (b *blitter) blit(mat materialType, col f32color.RGBA, col1, col2 f32color.RGBA, scale, off f32.Point, uvTrans f32.Affine2D) {
 	p := b.prog[mat]
 	b.ctx.BindProgram(p.prog)
 	var uniforms *blitUniforms
@@ -1157,7 +1117,6 @@ func (b *blitter) blit(z float32, mat materialType, col f32color.RGBA, col1, col
 		b.linearGradientUniforms.vert.blitUniforms.uvTransformR2 = [4]float32{t4, t5, t6, 0}
 		uniforms = &b.linearGradientUniforms.vert.blitUniforms
 	}
-	uniforms.z = z
 	uniforms.transform = [4]float32{scale.X, scale.Y, off.X, off.Y}
 	p.UploadUniforms()
 	b.ctx.DrawArrays(driver.DrawModeTriangleStrip, 0, 4)
@@ -1414,31 +1373,13 @@ func (d *drawOps) boundsForTransformedRect(r f32.Rectangle, tr f32.Affine2D) (au
 
 	// build the GPU vertices
 	l := len(d.vertCache)
-	if !d.compute {
-		d.vertCache = append(d.vertCache, make([]byte, vertStride*4*4)...)
-		aux = d.vertCache[l:]
-		encodeQuadTo(aux, 0, corners[0], corners[0].Add(corners[1]).Mul(0.5), corners[1])
-		encodeQuadTo(aux[vertStride*4:], 0, corners[1], corners[1].Add(corners[2]).Mul(0.5), corners[2])
-		encodeQuadTo(aux[vertStride*4*2:], 0, corners[2], corners[2].Add(corners[3]).Mul(0.5), corners[3])
-		encodeQuadTo(aux[vertStride*4*3:], 0, corners[3], corners[3].Add(corners[0]).Mul(0.5), corners[0])
-		fillMaxY(aux)
-	} else {
-		d.vertCache = append(d.vertCache, make([]byte, (scene.CommandSize+4)*4)...)
-		aux = d.vertCache[l:]
-		buf := aux
-		bo := binary.LittleEndian
-		bo.PutUint32(buf, 0) // Contour
-		ops.EncodeCommand(buf[4:], scene.Line(r.Min, f32.Pt(r.Max.X, r.Min.Y)))
-		buf = buf[4+scene.CommandSize:]
-		bo.PutUint32(buf, 0)
-		ops.EncodeCommand(buf[4:], scene.Line(f32.Pt(r.Max.X, r.Min.Y), r.Max))
-		buf = buf[4+scene.CommandSize:]
-		bo.PutUint32(buf, 0)
-		ops.EncodeCommand(buf[4:], scene.Line(r.Max, f32.Pt(r.Min.X, r.Max.Y)))
-		buf = buf[4+scene.CommandSize:]
-		bo.PutUint32(buf, 0)
-		ops.EncodeCommand(buf[4:], scene.Line(f32.Pt(r.Min.X, r.Max.Y), r.Min))
-	}
+	d.vertCache = append(d.vertCache, make([]byte, vertStride*4*4)...)
+	aux = d.vertCache[l:]
+	encodeQuadTo(aux, 0, corners[0], corners[0].Add(corners[1]).Mul(0.5), corners[1])
+	encodeQuadTo(aux[vertStride*4:], 0, corners[1], corners[1].Add(corners[2]).Mul(0.5), corners[2])
+	encodeQuadTo(aux[vertStride*4*2:], 0, corners[2], corners[2].Add(corners[3]).Mul(0.5), corners[3])
+	encodeQuadTo(aux[vertStride*4*3:], 0, corners[3], corners[3].Add(corners[0]).Mul(0.5), corners[0])
+	fillMaxY(aux)
 
 	// establish the transform mapping from bounds rectangle to transformed corners
 	var P1, P2, P3 f32.Point

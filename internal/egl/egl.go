@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Unlicense OR MIT
 
+//go:build linux || windows || freebsd || openbsd
 // +build linux windows freebsd openbsd
 
 package egl
@@ -97,6 +98,10 @@ func NewContext(disp NativeDisplayType) (*Context, error) {
 	return c, nil
 }
 
+func (c *Context) RenderTarget() gpu.RenderTarget {
+	return gpu.OpenGLRenderTarget{}
+}
+
 func (c *Context) API() gpu.API {
 	return gpu.OpenGL{}
 }
@@ -179,11 +184,9 @@ func createContext(disp _EGLDisplay) (*eglContext, error) {
 			// Some Mesa drivers crash if an sRGB framebuffer is requested without alpha.
 			// https://bugs.freedesktop.org/show_bug.cgi?id=107782.
 			//
-			// Also, some Android devices (Samsung S9) needs alpha for sRGB to work.
+			// Also, some Android devices (Samsung S9) need alpha for sRGB to work.
 			attribs = append(attribs, _EGL_ALPHA_SIZE, 8)
 		}
-		// Only request a depth buffer if we're going to render directly to the framebuffer.
-		attribs = append(attribs, _EGL_DEPTH_SIZE, 16)
 	}
 	attribs = append(attribs, _EGL_NONE)
 	eglCfg, ret := eglChooseConfig(disp, attribs)

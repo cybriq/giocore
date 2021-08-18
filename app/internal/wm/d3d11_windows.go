@@ -17,7 +17,6 @@ type d3d11Context struct {
 
 	swchain       *d3d11.IDXGISwapChain
 	renderTarget  *d3d11.RenderTargetView
-	depthView     *d3d11.DepthStencilView
 	width, height int
 }
 
@@ -54,6 +53,12 @@ func (c *d3d11Context) API() gpu.API {
 	return gpu.Direct3D11{Device: unsafe.Pointer(c.dev)}
 }
 
+func (c *d3d11Context) RenderTarget() gpu.RenderTarget {
+	return gpu.Direct3D11RenderTarget{
+		RenderTarget: unsafe.Pointer(c.renderTarget),
+	}
+}
+
 func (c *d3d11Context) Present() error {
 	err := c.swchain.Present(1, 0)
 	if err == nil {
@@ -72,16 +77,9 @@ func (c *d3d11Context) Present() error {
 }
 
 func (c *d3d11Context) Refresh() error {
-	return nil
-}
-
-func (c *d3d11Context) MakeCurrent() error {
 	var width, height int
-	c.win.w.Run(func() {
-		_, width, height = c.win.HWND()
-	})
+	_, width, height = c.win.HWND()
 	if c.renderTarget != nil && width == c.width && height == c.height {
-		c.ctx.OMSetRenderTargets(c.renderTarget, c.depthView)
 		return nil
 	}
 	c.releaseFBO()
@@ -91,10 +89,6 @@ func (c *d3d11Context) MakeCurrent() error {
 	c.width = width
 	c.height = height
 
-	desc, err := c.swchain.GetDesc()
-	if err != nil {
-		return err
-	}
 	backBuffer, err := c.swchain.GetBuffer(0, &d3d11.IID_Texture2D)
 	if err != nil {
 		return err
@@ -105,19 +99,14 @@ func (c *d3d11Context) MakeCurrent() error {
 	if err != nil {
 		return err
 	}
-	depthView, err := d3d11.CreateDepthView(c.dev, int(desc.BufferDesc.Width), int(desc.BufferDesc.Height), 24)
-	if err != nil {
-		d3d11.IUnknownRelease(unsafe.Pointer(renderTarget), renderTarget.Vtbl.Release)
-		return err
-	}
 	c.renderTarget = renderTarget
-	c.depthView = depthView
-
-	c.ctx.OMSetRenderTargets(c.renderTarget, c.depthView)
 	return nil
 }
 
-func (c *d3d11Context) Lock() {}
+func (c *d3d11Context) Lock() error {
+	c.ctx.OMSetRenderTargets(c.renderTarget, nil)
+	return nil
+}
 
 func (c *d3d11Context) Unlock() {}
 
@@ -133,13 +122,12 @@ func (c *d3d11Context) Release() {
 		d3d11.IUnknownRelease(unsafe.Pointer(c.dev), c.dev.Vtbl.Release)
 	}
 	*c = d3d11Context{}
+	if debug {
+		d3d11.ReportLiveObjects()
+	}
 }
 
 func (c *d3d11Context) releaseFBO() {
-	if c.depthView != nil {
-		d3d11.IUnknownRelease(unsafe.Pointer(c.depthView), c.depthView.Vtbl.Release)
-		c.depthView = nil
-	}
 	if c.renderTarget != nil {
 		d3d11.IUnknownRelease(unsafe.Pointer(c.renderTarget), c.renderTarget.Vtbl.Release)
 		c.renderTarget = nil
